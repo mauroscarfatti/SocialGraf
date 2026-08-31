@@ -1,4 +1,16 @@
-const firebaseConfig = {
+<!-- SECURE: Integración Firebase Auth v9 (Modular) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { 
+    getAuth, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword, 
+    onAuthStateChanged, 
+    signOut 
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  // Configuración de producción SocialGraf
+  const firebaseConfig = {
     apiKey: "AIzaSyC33DsWm7kSIeDNhCSgUGoXQ_DgSdrfPBA",
     authDomain: "socialgraf-737fa.firebaseapp.com",
     projectId: "socialgraf-737fa",
@@ -6,4 +18,78 @@ const firebaseConfig = {
     messagingSenderId: "228214440351",
     appId: "1:228214440351:web:4ae7de4d92c9d449a23daa",
     measurementId: "G-XC1L0HLQ68"
-};
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  let isLoginMode = true;
+  const authScreen = document.getElementById('auth-screen');
+  const authForm = document.getElementById('auth-form');
+  const authTitle = document.getElementById('auth-title');
+  const authBtn = document.getElementById('auth-btn');
+  const authSwitchText = document.getElementById('auth-switch-text');
+  const authSwitchBtn = document.getElementById('auth-switch-btn');
+  const authError = document.getElementById('auth-error');
+
+  window.toggleAuthMode = () => {
+    isLoginMode = !isLoginMode;
+    authError.classList.add('hidden');
+    if (isLoginMode) {
+      authTitle.innerText = 'Iniciar Sesión';
+      authBtn.innerText = 'ENTRAR';
+      authSwitchText.innerText = '¿No tenés cuenta?';
+      authSwitchBtn.innerText = 'Registrate';
+    } else {
+      authTitle.innerText = 'Crear Cuenta';
+      authBtn.innerText = 'REGISTRARME';
+      authSwitchText.innerText = '¿Ya tenés cuenta?';
+      authSwitchBtn.innerText = 'Iniciá Sesión';
+    }
+  };
+
+  authForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    authError.classList.add('hidden');
+    authBtn.disabled = true;
+    authBtn.innerText = 'PROCESANDO...';
+
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value;
+
+    try {
+      if (isLoginMode) {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password);
+      }
+    } catch (error) {
+      // Sanitización de errores para el usuario
+      let errorMsg = 'Ocurrió un error. Verificá tus datos.';
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') errorMsg = 'Credenciales incorrectas.';
+      if (error.code === 'auth/email-already-in-use') errorMsg = 'El correo ya está registrado.';
+      if (error.code === 'auth/weak-password') errorMsg = 'La contraseña debe tener al menos 6 caracteres.';
+      
+      authError.innerText = errorMsg;
+      authError.classList.remove('hidden');
+      authBtn.innerText = isLoginMode ? 'ENTRAR' : 'REGISTRARME';
+      authBtn.disabled = false;
+    }
+  });
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      authScreen.style.opacity = '0';
+      setTimeout(() => authScreen.classList.add('hidden'), 300);
+    } else {
+      authScreen.classList.remove('hidden');
+      setTimeout(() => authScreen.style.opacity = '1', 10);
+      authBtn.innerText = isLoginMode ? 'ENTRAR' : 'REGISTRARME';
+      authBtn.disabled = false;
+    }
+  });
+
+  window.logoutUser = () => {
+    signOut(auth).catch((error) => console.error("Error al cerrar sesión", error));
+  };
+</script>
