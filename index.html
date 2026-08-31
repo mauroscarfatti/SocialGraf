@@ -1,95 +1,2057 @@
-<!-- SECURE: Integración Firebase Auth v9 (Modular) -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { 
-    getAuth, 
-    createUserWithEmailAndPassword, 
-    signInWithEmailAndPassword, 
-    onAuthStateChanged, 
-    signOut 
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-  // Configuración de producción SocialGraf
-  const firebaseConfig = {
-    apiKey: "AIzaSyC33DsWm7kSIeDNhCSgUGoXQ_DgSdrfPBA",
-    authDomain: "socialgraf-737fa.firebaseapp.com",
-    projectId: "socialgraf-737fa",
-    storageBucket: "socialgraf-737fa.firebasestorage.app",
-    messagingSenderId: "228214440351",
-    appId: "1:228214440351:web:4ae7de4d92c9d449a23daa",
-    measurementId: "G-XC1L0HLQ68"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-
-  let isLoginMode = true;
-  const authScreen = document.getElementById('auth-screen');
-  const authForm = document.getElementById('auth-form');
-  const authTitle = document.getElementById('auth-title');
-  const authBtn = document.getElementById('auth-btn');
-  const authSwitchText = document.getElementById('auth-switch-text');
-  const authSwitchBtn = document.getElementById('auth-switch-btn');
-  const authError = document.getElementById('auth-error');
-
-  window.toggleAuthMode = () => {
-    isLoginMode = !isLoginMode;
-    authError.classList.add('hidden');
-    if (isLoginMode) {
-      authTitle.innerText = 'Iniciar Sesión';
-      authBtn.innerText = 'ENTRAR';
-      authSwitchText.innerText = '¿No tenés cuenta?';
-      authSwitchBtn.innerText = 'Registrate';
-    } else {
-      authTitle.innerText = 'Crear Cuenta';
-      authBtn.innerText = 'REGISTRARME';
-      authSwitchText.innerText = '¿Ya tenés cuenta?';
-      authSwitchBtn.innerText = 'Iniciá Sesión';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- Desarrollador y Arquitecto de Software: Mauro César Scarfatti -->
+  <meta name="author" content="Mauro César Scarfatti">
+  <meta name="version" content="1.30.1-Auth">
+  <title>SocialGraf Pro</title>
+  
+  <link rel="icon" type="image/jpeg" href="Logo%20SocialGraf%20favicon.jpeg">
+  <link rel="apple-touch-icon" href="Logo%20SocialGraf%20favicon.jpeg">
+  <meta name="theme-color" content="#0f172a">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Roboto:wght@400;700;900&family=Poppins:wght@400;600;700;800&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+        --brand-primary: #2C3280;
+        --brand-secondary: #38bdf8;
+        --footer-bg: #ffffff;
+        --footer-text: #000000;
+        --main-font: 'Montserrat', sans-serif;
+        --price-bg: #2C3280;
+        --price-opacity: 1;
+        --price-border: #ffffff;
+        --overlay-bg: rgba(0,0,0,0.5);
+        --overlay-text: #ffffff;
     }
-  };
 
-  authForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    authError.classList.add('hidden');
-    authBtn.disabled = true;
-    authBtn.innerText = 'PROCESANDO...';
+    body { font-family: var(--main-font); background-color: #0f172a; color: #f8fafc; -webkit-tap-highlight-color: transparent; transition: background-color 0.3s; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: #1e293b; }
+    ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 2px; }
 
-    const email = document.getElementById('auth-email').value.trim();
-    const password = document.getElementById('auth-password').value;
+    #captureArea { container-type: inline-size; border-style: solid; }
 
-    try {
-      if (isLoginMode) {
-        await signInWithEmailAndPassword(auth, email, password);
-      } else {
-        await createUserWithEmailAndPassword(auth, email, password);
-      }
-    } catch (error) {
-      // Sanitización de errores para el usuario
-      let errorMsg = 'Ocurrió un error. Verificá tus datos.';
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') errorMsg = 'Credenciales incorrectas.';
-      if (error.code === 'auth/email-already-in-use') errorMsg = 'El correo ya está registrado.';
-      if (error.code === 'auth/weak-password') errorMsg = 'La contraseña debe tener al menos 6 caracteres.';
+    .story-aspect-ratio { aspect-ratio: 9 / 16; height: 100%; width: auto; max-width: none; margin: 0 auto; }
+    .feed-aspect-ratio { aspect-ratio: 4 / 5; height: 100%; width: auto; max-width: none; margin: 0 auto; }
+    .square-aspect-ratio { aspect-ratio: 1 / 1; height: 100%; width: auto; max-width: none; margin: 0 auto; }
+    
+    .glass-panel { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+
+    .frame-viewport { position: relative; overflow: hidden; width: 100%; height: 100%; background-color: #1e293b; display: flex; align-items: center; justify-content: center; cursor: grab; touch-action: none; }
+    .frame-viewport:active { cursor: grabbing; }
+    .frame-image { position: absolute; transform-origin: center center; will-change: transform; pointer-events: none; }
+
+    input[type=range].frame-slider { -webkit-appearance: none; width: 100%; background: transparent; height: 12px; border-radius: 6px; }
+    input[type=range].frame-slider::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: #3b82f6; cursor: pointer; margin-top: -6px; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+    input[type=range].frame-slider::-webkit-slider-runnable-track { width: 100%; height: 8px; cursor: pointer; background: #475569; border-radius: 4px; }
+    
+    .grid-layout-1 { display: grid; grid-template-rows: 1fr; grid-template-columns: 1fr; height: 100%; }
+    .grid-layout-2 { display: grid; grid-template-rows: 1fr 1fr; grid-template-columns: 1fr; height: 100%; }
+    .grid-layout-3 { display: grid; grid-template-rows: 55% 45%; grid-template-columns: 1fr 1fr; height: 100%; }
+    .grid-layout-3 .hero-img { grid-column: 1 / -1; }
+    .grid-layout-4 { display: grid; grid-template-rows: 1fr 1fr; grid-template-columns: 1fr 1fr; height: 100%; }
+
+    input[type="color"] { -webkit-appearance: none; border: none; padding: 0; width: 100%; height: 28px; border-radius: 4px; cursor: pointer; }
+    input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    input[type="color"]::-webkit-color-swatch { border: none; border-radius: 4px; }
+
+    details > summary { list-style: none; outline: none; }
+    details > summary::-webkit-details-marker { display: none; }
+    details[open] > summary svg.chevron { transform: rotate(180deg); }
+
+    @media (max-width: 1023px) { .mobile-tab-active { background-color: #2563eb !important; color: #ffffff !important; font-weight: 700; border-bottom: 2px solid #60a5fa; } }
+
+    body.light-theme { background-color: #f8fafc !important; }
+    body.light-theme #panel-controls { background-color: #f1f5f9 !important; border-color: #e2e8f0 !important; }
+    body.light-theme #panel-preview { background-color: #e2e8f0 !important; }
+    body.light-theme .glass-panel { background: rgba(255, 255, 255, 0.9) !important; border-color: #cbd5e1 !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    body.light-theme #panel-controls .text-white, body.light-theme #panel-controls .text-slate-300, body.light-theme #panel-controls .text-slate-400 { color: #334155 !important; }
+    body.light-theme #panel-controls .text-indigo-400 { color: #4338ca !important; }
+    body.light-theme #panel-controls .text-amber-400 { color: #d97706 !important; }
+    body.light-theme #panel-controls .text-emerald-400 { color: #059669 !important; }
+    body.light-theme #panel-controls .text-blue-400 { color: #2563eb !important; }
+    body.light-theme #panel-controls .text-fuchsia-400 { color: #c026d3 !important; }
+    body.light-theme #panel-preview .adapt-text { color: #1e293b !important; }
+    body.light-theme #panel-controls .bg-slate-800, body.light-theme #panel-controls .bg-slate-800\/80, body.light-theme #panel-controls .bg-slate-900\/40, body.light-theme #panel-controls .bg-slate-900\/50, body.light-theme #panel-controls .bg-slate-900\/80 { background-color: #ffffff !important; border-color: #cbd5e1 !important; }
+    body.light-theme #panel-controls input[type="text"], body.light-theme #panel-controls input[type="url"], body.light-theme #panel-controls input[type="tel"], body.light-theme #panel-controls input[type="email"], body.light-theme #panel-controls select, body.light-theme #panel-controls textarea { background-color: #f8fafc !important; color: #0f172a !important; border-color: #cbd5e1 !important; }
+
+    body.sidebar-closed #panel-controls, body.sidebar-closed #mobile-tabs { display: none !important; }
+    body.sidebar-closed #panel-preview { display: flex !important; width: 100% !important; }
+    
+    .interactive-element { cursor: pointer; transition: all 0.2s; }
+    .interactive-element:hover { outline: 2px dashed #3b82f6; outline-offset: 2px; }
+  </style>
+</head>
+<body class="h-screen w-screen overflow-hidden text-sm sm:text-base selection:bg-blue-500/30 flex flex-col relative pb-20 lg:pb-0">
+
+  <!-- PANTALLA DE AUTENTICACIÓN (Bloquea el acceso a la app) -->
+  <div id="auth-screen" class="fixed inset-0 z-[200] bg-slate-950 flex items-center justify-center p-4 transition-opacity duration-300">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl max-w-sm w-full p-8 flex flex-col items-center">
+      <img src="Logo%20SocialGraf%20Web.jpeg" alt="SocialGraf" class="h-12 mb-6 object-contain rounded-lg" onerror="this.style.display='none'">
       
-      authError.innerText = errorMsg;
-      authError.classList.remove('hidden');
-      authBtn.innerText = isLoginMode ? 'ENTRAR' : 'REGISTRARME';
-      authBtn.disabled = false;
-    }
-  });
+      <h2 id="auth-title" class="text-xl font-black text-white uppercase tracking-wider mb-6">Iniciar Sesión</h2>
+      
+      <form id="auth-form" class="w-full space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-400 mb-1">Email</label>
+          <input type="email" id="auth-email" required class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-400 mb-1">Contraseña</label>
+          <input type="password" id="auth-password" required minlength="6" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+        </div>
+        
+        <button type="submit" id="auth-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg shadow-blue-500/30 transition-all mt-4">
+          ENTRAR
+        </button>
+      </form>
+      
+      <div class="mt-6 text-xs text-slate-400 font-medium">
+        <span id="auth-switch-text">¿No tenés cuenta?</span> 
+        <button type="button" onclick="toggleAuthMode()" id="auth-switch-btn" class="text-blue-400 hover:text-blue-300 font-bold ml-1">
+          Registrate
+        </button>
+      </div>
+      
+      <p id="auth-error" class="mt-4 text-xs font-bold text-red-400 text-center hidden"></p>
+    </div>
+  </div>
 
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      authScreen.style.opacity = '0';
-      setTimeout(() => authScreen.classList.add('hidden'), 300);
-    } else {
-      authScreen.classList.remove('hidden');
-      setTimeout(() => authScreen.style.opacity = '1', 10);
-      authBtn.innerText = isLoginMode ? 'ENTRAR' : 'REGISTRARME';
-      authBtn.disabled = false;
-    }
-  });
+  <div id="tcModal" class="fixed inset-0 z-[100] bg-slate-900/95 backdrop-blur-md hidden flex-col items-center justify-center p-4 transition-opacity">
+    <div class="bg-slate-800 border border-slate-600 rounded-2xl shadow-2xl max-w-lg w-full flex flex-col max-h-[90vh]">
+      <div class="p-6 border-b border-slate-700">
+        <h2 class="text-xl font-black text-white uppercase tracking-wider">Términos y Condiciones</h2>
+      </div>
+      <div class="p-6 overflow-y-auto text-sm text-slate-300 space-y-4 font-medium">
+        <p>Al utilizar <strong>SocialGraf Pro</strong>, aceptás lo siguiente:</p>
+        <ul class="list-disc pl-5 space-y-2">
+          <li><strong class="text-white">Privacidad (Zero-Storage):</strong> Ninguna imagen o video ingresado se sube a nuestros servidores. El procesamiento es local.</li>
+          <li><strong class="text-white">Propiedad Intelectual:</strong> Sos responsable de los derechos de uso de los medios procesados.</li>
+        </ul>
+      </div>
+      <div class="p-6 border-t border-slate-700 flex justify-end">
+        <button onclick="acceptTC()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-blue-500/30 transition-all">Acepto y Entiendo</button>
+      </div>
+    </div>
+  </div>
 
-  window.logoutUser = () => {
-    signOut(auth).catch((error) => console.error("Error al cerrar sesión", error));
-  };
-</script>
+  <img id="imgWatermarkMaster" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" class="hidden">
+  <img id="imgWhatsappHidden" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+PHBhdGggZD0iTTE3LjQ3MiAxNC4zOGMtLjI5Ny0uMTQ5LTEuNzU4LS44NjgtMi4wMy0uOTY3LS4yNzEtLjA5OS0uNDcxLS4xNDgtLjY2OS4xNDktLjE5OC4yOTctLjc2Ny45NjYtLjk0IDEuMTY0LS4xNzMuMTk4LS4zNDYuMjIzLS42NDQuMDc0LS4yOTctLjE0OS0xLjI1NS0uNDYyLTIuMzktMS40NzUtLjg4My0uNzg4LTEuNDc5LTEuNzYtMS42NTMtMi4wNTktLjE3My0uMjk3LS4wMTgtLjQ1OC4xMy0uNjA2LjEzNC0uMTMzLjI5Ny0uMzQ2LjQ0Ni0uNTIxLjE1MS0uMTcyLjE5OC0uMjk3LjI5OC0uNDk1LjA5OS0uMTk4LjA1LS4zNzEtLjAyNS0uNTItLjA3NS0uMTQ5LS42NjktMS42MS0uOTE4LTIuMjA2LS4yNDItLjU3OS0uNDg3LS41LS42NjktLjUxLS4xNzMtLjAxLS4zNzEtLjAxLS41NjktLjAxLS4xOTggMC0uNTIuMDc0LS43OTIuMzcyLS4yNzIuMjk3LTEuMDQgMS4wMTYtMS4wNCAyLjQ3OXMwIDEuMDY1IDIuNDc5IDIuNDc5Yy4yNzIuMzk2IDEuNjgzIDIuNTY2IDQuMDc1IDMuNTc1LjU2OS4yMzggMS4wMTYuMzgxIDEuMzYxLjQ4OC41NzQuMTgyIDEuMDk0LjE1NiAxLjUwNS4wOTUuNDYzLS4wNyAxLjQyNi0uNTgyIDEuNjI0LTEuMTQ1LjE5OC0uNTYzLjE5OC0xLjA0LjEzOC0xLjE0NXMtLjI0Ny0uMTQ4LS41NDUtLjI5N3pNMTIgMkMyLjM5IDIgMiAyLjM5IDIgMTJjMCAxLjc0Ni40NCAzLjM5NyAxLjIyNCA0LjgzOEwxIDIyeDQuODk0LTEuMTg0QzcuNTU0IDIxLjU2NiA5LjcyIDIyIDEyIDIyYzkuNjA5IDAgMTAtOS42MDkgMTAtMTBTMTcuNjA5IDIgMTIgMnptMCAxOC40NjdjLTEuNTUyIDAtMy4wMzYtLjQxMS00LjM1NC0xLjE5MmwtLjMxMS0uMTg0LTMuMjMuODQ4Ljg2My0zLjE1LS4yMDItLjMyMUMzLjI2OSAxNC44OTIgMi42IDExLjQyNCAyLjYgMTAuMDMzQzIuNiA0Ljc2MiA0Ljc2MiAyLjYgMTAuMDMzIDIuNmM1LjI3IDAgNy40MzIgMi4xNjEgNy40MzIgNy40MzJTMTcuMyAxOC40NjcgMTIgMTguNDY3eiIvPjwvc3ZnPg==" class="hidden">
+
+  <div class="fixed top-4 left-4 z-[70] flex items-center gap-3 pointer-events-none">
+      <button onclick="toggleSidebar()" class="pointer-events-auto flex items-center justify-center w-[44px] h-[44px] bg-slate-800/90 hover:bg-slate-700/90 backdrop-blur-md border border-slate-600/50 rounded-xl text-white shadow-lg transition-colors cursor-pointer focus:outline-none">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+      </button>
+      <img id="mainAppLogo" src="Logo%20SocialGraf%20Web%20Black.jpeg" alt="SocialGraf" class="pointer-events-auto h-[44px] object-contain rounded-xl shadow-lg transition-all duration-300" onerror="this.style.display='none'">
+  </div>
+
+  <div id="mobile-tabs" class="lg:hidden flex bg-slate-900 sticky top-0 z-50 shadow-md flex-none">
+    <button id="tab-controls" onclick="switchMobileTab('controls')" class="flex-1 py-4 text-center font-semibold text-slate-400 mobile-tab-active transition-all text-sm uppercase tracking-wider pl-16">1. Editor</button>
+    <button id="tab-preview" onclick="switchMobileTab('preview')" class="flex-1 py-4 text-center font-semibold text-slate-400 transition-all text-sm uppercase tracking-wider">2. Vista</button>
+  </div>
+
+  <div class="lg:hidden fixed bottom-4 left-0 right-0 z-[100] flex justify-center pointer-events-none">
+      <button onclick="exportToCanvas()" id="btnDownloadMobile" class="pointer-events-auto w-[90%] bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black py-4 rounded-xl shadow-[0_10px_25px_rgba(16,185,129,0.5)] flex items-center justify-center gap-2 border border-emerald-400/50 active:scale-95 transition-transform">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        <span>DESCARGAR</span>
+      </button>
+  </div>
+
+  <div class="flex-1 flex flex-col lg:flex-row h-full overflow-hidden relative">
+    
+    <div id="panel-controls" class="w-full lg:w-[450px] xl:w-[500px] h-full overflow-y-auto bg-slate-900/50 p-4 sm:p-6 pt-20 lg:pt-20 border-r border-slate-800 flex flex-col gap-4 pb-12 transition-colors duration-300 z-50">
+      
+      <div class="flex items-center justify-between h-[44px] mb-2">
+        <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Ajustes</h2>
+        <div class="flex flex-col items-center">
+          <span class="text-[10px] font-bold text-slate-300 mb-1 tracking-wider uppercase">Modo</span>
+          <div class="flex items-center gap-2">
+            <span class="text-[9px] font-bold text-slate-400">Oscuro</span>
+            <label class="relative inline-flex items-center cursor-pointer" title="Modo Claro/Oscuro UI">
+              <input type="checkbox" id="uiThemeToggle" class="sr-only peer" onchange="toggleUITheme()">
+              <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500 shadow-inner"></div>
+            </label>
+            <span class="text-[9px] font-bold text-slate-400">Claro</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1. INMOBILIARIA -->
+      <details id="detInmobiliaria" class="glass-panel rounded-2xl shadow-xl border border-indigo-500/30">
+        <summary class="p-4 cursor-pointer flex justify-between items-center bg-slate-800/80 hover:bg-slate-700/80 select-none rounded-2xl">
+          <span class="font-extrabold text-sm text-indigo-400 uppercase tracking-wider truncate pr-2">1. Inmobiliaria</span>
+          <svg class="w-5 h-5 flex-shrink-0 chevron transition-transform duration-300 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </summary>
+        <div class="p-4 space-y-4 border-t border-slate-700/50 bg-slate-900/40 rounded-b-2xl">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div class="relative w-full">
+                    <button onclick="document.getElementById('imgAgentInput').click()" class="flex flex-col items-center justify-center w-full p-2 border-2 border-dashed border-slate-600 rounded-xl cursor-pointer hover:bg-slate-700 bg-slate-800/50">
+                        <span class="text-[9px] font-bold text-slate-300 text-center">Cambiar Agente</span>
+                    </button>
+                    <input id="imgAgentInput" type="file" accept="image/*" onchange="handleBrandUpload(event, 'imgAgent')" class="hidden">
+                </div>
+                <div class="relative w-full">
+                    <button onclick="document.getElementById('imgLogoInput').click()" class="flex flex-col items-center justify-center w-full p-2 border-2 border-dashed border-slate-600 rounded-xl cursor-pointer hover:bg-slate-700 bg-slate-800/50">
+                        <span class="text-[9px] font-bold text-slate-300 text-center">Cambiar Logo</span>
+                    </button>
+                    <input id="imgLogoInput" type="file" accept="image/*" onchange="handleBrandUpload(event, 'imgLogo')" class="hidden">
+                </div>
+                <div class="relative w-full">
+                    <button onclick="document.getElementById('imgWatermarkInput').click()" class="flex flex-col items-center justify-center w-full p-2 border-2 border-dashed border-slate-600 rounded-xl cursor-pointer hover:bg-slate-700 bg-blue-900/30">
+                        <span class="text-[9px] font-bold text-blue-300 text-center">M. Agua</span>
+                    </button>
+                    <input id="imgWatermarkInput" type="file" accept="image/*" onchange="handleBrandUpload(event, 'imgWatermarkMaster')" class="hidden">
+                </div>
+            </div>
+            <div>
+                <label class="block text-[11px] font-semibold text-slate-300 mb-2 flex justify-between"><span>Transparencia M. Agua</span> <span id="watermarkVal">15%</span></label>
+                <input type="range" id="inputWatermark" min="0" max="40" value="15" oninput="updateWatermarkOpacity(this.value)" class="w-full accent-blue-500 cursor-pointer h-2 bg-slate-700 rounded-lg">
+            </div>
+            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/50 space-y-3 mt-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-300 mb-1">Teléfono</label>
+                        <input type="tel" id="inputPhone" value="+54 9 2267 443404" maxlength="20" oninput="updateLivePreview()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold text-white focus:outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-300 mb-1">Email</label>
+                        <input type="email" id="inputEmail" value="info@mcspropiedades.com.ar" maxlength="40" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold text-white focus:outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-300 mb-1">Matrícula</label>
+                        <input type="text" id="inputMatricula" value="Tomo III Folio 841 N° 1497" maxlength="40" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold text-white focus:outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-300 mb-1">Dirección</label>
+                        <input type="text" id="inputAddress" value="" placeholder="Opcional" maxlength="60" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold text-white focus:outline-none transition-all">
+                    </div>
+                </div>
+            </div>
+        </div>
+      </details>
+
+      <!-- 2. FORMATO -->
+      <details class="glass-panel rounded-2xl shadow-xl border border-slate-600/50">
+        <summary class="p-4 cursor-pointer flex justify-between items-center bg-slate-800/80 hover:bg-slate-700/80 select-none rounded-2xl">
+          <span class="font-extrabold text-sm text-slate-300 uppercase tracking-wider truncate pr-2">2. Formato Redes</span>
+          <svg class="w-5 h-5 flex-shrink-0 chevron transition-transform duration-300 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </summary>
+        <div class="p-4 border-t border-slate-700/50 bg-slate-900/40 rounded-b-2xl grid grid-cols-2 gap-3">
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-2">Formato (Auto-recorte)</label>
+                <select id="inputPlatform" onchange="syncPlatform(this.value)" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-2 py-3 text-xs text-white focus:outline-none">
+                <option value="instagram_safe">Story / Estado (9:16)</option>
+                <option value="instagram_feed">Feed Vertical (4:5)</option>
+                <option value="instagram_square">Feed Cuadrado (1:1)</option>
+                <option value="whatsapp">WhatsApp Full</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-2 text-emerald-400">Cantidad de Paneles</label>
+                <select id="inputLayout" onchange="syncLayout(this.value); updatePhotoControlsUI();" class="w-full bg-slate-800 border-2 border-emerald-500/40 rounded-xl px-2 py-3 text-xs text-white focus:outline-none">
+                <option value="1">1 Medio (Pleno)</option>
+                <option value="2">2 Medios (50/50)</option>
+                <option value="3" selected>3 Medios (60/40)</option>
+                <option value="4">4 Medios (Grilla)</option>
+                </select>
+            </div>
+        </div>
+      </details>
+
+      <!-- 3. FOTOS / VIDEOS -->
+      <details id="detFotos" class="glass-panel rounded-2xl shadow-xl border border-blue-500/30" open>
+        <summary class="p-4 cursor-pointer flex justify-between items-center bg-slate-800/80 hover:bg-slate-700/80 select-none rounded-2xl">
+          <span class="font-extrabold text-sm text-blue-400 uppercase tracking-wider truncate pr-2">3. Medios (Fotos o Videos)</span>
+          <svg class="w-5 h-5 flex-shrink-0 chevron transition-transform duration-300 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </summary>
+        <div class="p-4 border-t border-slate-700/50 bg-slate-900/40 rounded-b-2xl">
+          <div id="controlsContainer" class="grid grid-cols-1 gap-4 text-xs"></div>
+        </div>
+      </details>
+
+      <!-- 4. IDENTIDAD VISUAL -->
+      <details id="detVisual" class="glass-panel rounded-2xl shadow-xl border border-amber-500/30">
+        <summary class="p-4 cursor-pointer flex justify-between items-center bg-slate-800/80 hover:bg-slate-700/80 select-none rounded-2xl">
+          <span class="font-extrabold text-sm text-amber-400 uppercase tracking-wider truncate pr-2">4. Identidad Visual</span>
+          <svg class="w-5 h-5 flex-shrink-0 chevron transition-transform duration-300 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </summary>
+        <div class="p-4 space-y-3 border-t border-slate-700/50 bg-slate-900/40 rounded-b-2xl">
+            <details class="bg-slate-900/80 rounded-lg border border-slate-700/50">
+                <summary class="p-3 cursor-pointer flex justify-between items-center select-none">
+                    <h3 class="text-[11px] font-black text-slate-300 uppercase">Marco Institucional</h3>
+                    <svg class="w-4 h-4 text-slate-400 chevron transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </summary>
+                <div class="p-3 pt-0 space-y-3 border-t border-slate-700/50 mt-2 pt-3">
+                    <div class="grid grid-cols-1 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-300 mb-1">Tipografía Global</label>
+                            <select id="cfgFontFamily" onchange="updateDesignConfig()" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none">
+                                <option value="Montserrat">Montserrat</option>
+                                <option value="Poppins">Poppins</option>
+                                <option value="Roboto">Roboto</option>
+                                <option value="Lato">Lato</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-slate-700/50 pt-2 mt-2">
+                        <label class="flex items-center gap-2 text-[10px] font-bold text-amber-300 cursor-pointer">
+                            <input type="checkbox" id="cfgGradientBorder" checked onchange="toggleGradientUI()" class="accent-amber-500 w-3 h-3"> Marco Degradé
+                        </label>
+                        <label class="flex items-center gap-2 text-[10px] font-bold text-amber-300 cursor-pointer">
+                            <input type="checkbox" id="cfgFluoBorder" onchange="updateDesignConfig()" class="accent-amber-500 w-3 h-3"> Fluo Marco
+                        </label>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div><label id="lblBorderColor1" class="block text-[9px] font-bold text-slate-400 mb-1">Color 1 (Inicio)</label><input type="color" id="cfgBorderColor1" value="#2C3280" onchange="updateDesignConfig()"></div>
+                        <div id="boxBorderColor2"><label class="block text-[9px] font-bold text-slate-400 mb-1">Color 2 (Medio)</label><input type="color" id="cfgBorderColor2" value="#38bdf8" onchange="updateDesignConfig()"></div>
+                        <div id="boxBorderColor3"><label class="block text-[9px] font-bold text-slate-400 mb-1">Color 3 (Fin)</label><input type="color" id="cfgBorderColor3" value="#ffffff" onchange="updateDesignConfig()"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 border-t border-slate-700/50 pt-2">
+                        <div><label class="block text-[9px] font-bold text-slate-400 mb-1">Fondo del Pie</label><input type="color" id="cfgColorFooterBg" value="#ffffff" onchange="updateDesignConfig()"></div>
+                        <div><label class="block text-[9px] font-bold text-slate-400 mb-1">Texto del Pie</label><input type="color" id="cfgColorFooterText" value="#000000" onchange="updateDesignConfig()"></div>
+                    </div>
+                </div>
+            </details>
+            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/50 mt-2 space-y-3">
+                <h3 class="text-[11px] font-black text-slate-300 uppercase mb-2">Líneas Divisorias de Fotos</h3>
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-[10px] font-bold text-slate-300 flex-1">Ancho: <span id="valGapWidth" class="text-amber-400">4px</span></label>
+                    <input type="range" id="cfgGapWidth" min="0" max="15" value="4" oninput="updateDesignConfig()" class="w-1/2 accent-blue-500 h-2 bg-slate-700 rounded mt-1">
+                </div>
+                <div class="flex items-center gap-2 mb-2">
+                    <label class="flex items-center gap-2 text-[10px] font-bold text-amber-300 cursor-pointer">
+                        <input type="checkbox" id="cfgGradientGap" checked onchange="toggleGapUI()" class="accent-amber-500 w-3 h-3"> Divisores en Degradé
+                    </label>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div><label id="lblGapColor1" class="block text-[9px] font-bold text-slate-400 mb-1">Color 1 (Inicio)</label><input type="color" id="cfgGapColor1" value="#2C3280" onchange="updateDesignConfig()"></div>
+                    <div id="boxGapColor2"><label class="block text-[9px] font-bold text-slate-400 mb-1">Color 2 (Medio)</label><input type="color" id="cfgGapColor2" value="#38bdf8" onchange="updateDesignConfig()"></div>
+                    <div id="boxGapColor3"><label class="block text-[9px] font-bold text-slate-400 mb-1">Color 3 (Fin)</label><input type="color" id="cfgGapColor3" value="#ffffff" onchange="updateDesignConfig()"></div>
+                </div>
+            </div>
+        </div>
+      </details>
+
+      <!-- 5. TEXTOS -->
+      <details class="glass-panel rounded-2xl shadow-xl border border-emerald-500/30">
+        <summary class="p-4 cursor-pointer flex justify-between items-center bg-slate-800/80 hover:bg-slate-700/80 select-none rounded-2xl">
+          <span class="font-extrabold text-sm text-emerald-400 uppercase tracking-wider truncate pr-2">5. Textos Superiores</span>
+          <svg class="w-5 h-5 flex-shrink-0 chevron transition-transform duration-300 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </summary>
+        <div class="p-4 space-y-4 border-t border-slate-700/50 bg-slate-900/40 rounded-b-2xl">
+            <div class="space-y-3">
+                <div class="flex gap-2 items-center">
+                    <div class="flex-1">
+                        <label class="block text-[10px] font-semibold text-slate-300 mb-1">Texto Libre 1</label>
+                        <input type="text" id="inputBadgeText" value="EN VENTA EXCLUSIVA" maxlength="20" oninput="updateLivePreview()" class="w-full bg-slate-800 border-2 border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none transition-all uppercase">
+                    </div>
+                    <div class="w-10">
+                        <label class="block text-[9px] text-slate-400 mb-1 text-center">Color</label>
+                        <input type="color" id="cfgTextCol1" value="#ffffff" onchange="updateLivePreview()">
+                    </div>
+                </div>
+                <div class="flex gap-2 items-center">
+                    <div class="flex-1">
+                        <label class="block text-[10px] font-semibold text-slate-300 mb-1">Texto Libre 2</label>
+                        <input type="text" id="inputZona" value="VILLA GESELL CENTRO" maxlength="20" oninput="updateLivePreview()" class="w-full bg-slate-800 border-2 border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none transition-all uppercase">
+                    </div>
+                    <div class="w-10">
+                        <label class="block text-[9px] text-slate-400 mb-1 text-center">Color</label>
+                        <input type="color" id="cfgTextCol2" value="#fbbf24" onchange="updateLivePreview()">
+                    </div>
+                </div>
+                <div class="flex gap-2 items-center">
+                    <div class="flex-1">
+                        <label class="block text-[10px] font-semibold text-slate-300 mb-1">Texto Libre 3</label>
+                        <input type="text" id="inputTagline" value="A 100M DE LA PLAYA" maxlength="20" oninput="updateLivePreview()" class="w-full bg-slate-800 border-2 border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none transition-all uppercase">
+                    </div>
+                    <div class="w-10">
+                        <label class="block text-[9px] text-slate-400 mb-1 text-center">Color</label>
+                        <input type="color" id="cfgTextCol3" value="#38bdf8" onchange="updateLivePreview()">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/50">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-300 mb-2">Posición Global</label>
+                        <select id="cfgBadgePos" onchange="resetTextPos()" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-[11px] text-white focus:outline-none">
+                            <option value="TC" selected>Arriba Centro</option>
+                            <option value="TL">Arriba Izquierda</option>
+                            <option value="TR">Arriba Derecha</option>
+                            <option value="CL">Centro Izquierda</option>
+                            <option value="CR">Centro Derecha</option>
+                            <option value="BC">Abajo Centro</option>
+                            <option value="BL">Abajo Izquierda</option>
+                            <option value="BR">Abajo Derecha</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col justify-center gap-2 mt-2">
+                        <label class="flex items-center gap-2 text-[10px] font-bold text-slate-300 cursor-pointer">
+                            <input type="checkbox" id="cfgTextBold" checked onchange="updateLivePreview()" class="accent-emerald-500 w-3 h-3"> Negrita
+                        </label>
+                        <label class="flex items-center gap-2 text-[10px] font-bold text-slate-300 cursor-pointer">
+                            <input type="checkbox" id="cfgTextUnderline" onchange="updateLivePreview()" class="accent-emerald-500 w-3 h-3"> Subrayado
+                        </label>
+                        <label class="flex items-center gap-2 text-[10px] font-bold text-emerald-400 cursor-pointer">
+                            <input type="checkbox" id="cfgFluoTexts" checked onchange="updateLivePreview()" class="accent-emerald-500 w-3 h-3"> Efecto Flúor
+                        </label>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-700/50">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-300 mb-1">Tamaño Textos</label>
+                        <div class="flex gap-2">
+                            <button onclick="zoomTexts(-1)" class="w-10 h-7 bg-slate-700 hover:bg-slate-600 rounded text-white font-bold text-lg leading-none flex items-center justify-center shadow transition-transform active:scale-95">-</button>
+                            <button onclick="zoomTexts(1)" class="w-10 h-7 bg-slate-700 hover:bg-slate-600 rounded text-white font-bold text-lg leading-none flex items-center justify-center shadow transition-transform active:scale-95">+</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-300 mb-2 text-center">Ajuste Fino (Posición)</label>
+                        <div class="grid grid-cols-3 gap-1 w-24 mx-auto">
+                            <div></div>
+                            <button onclick="moveTexts(0, -1)" class="w-8 h-8 bg-slate-700 hover:bg-slate-600 rounded flex items-center justify-center text-white text-lg font-bold shadow active:scale-95" title="Arriba">↑</button>
+                            <div></div>
+                            <button onclick="moveTexts(-1, 0)" class="w-8 h-8 bg-slate-700 hover:bg-slate-600 rounded flex items-center justify-center text-white text-lg font-bold shadow active:scale-95" title="Izquierda">←</button>
+                            <button onclick="moveTexts(0, 0)" class="w-8 h-8 bg-slate-800 rounded flex items-center justify-center text-slate-500 text-sm font-bold border border-slate-600" title="Resetear Centro">O</button>
+                            <button onclick="moveTexts(1, 0)" class="w-8 h-8 bg-slate-700 hover:bg-slate-600 rounded flex items-center justify-center text-white text-lg font-bold shadow active:scale-95" title="Derecha">→</button>
+                            <div></div>
+                            <button onclick="moveTexts(0, 1)" class="w-8 h-8 bg-slate-700 hover:bg-slate-600 rounded flex items-center justify-center text-white text-lg font-bold shadow active:scale-95" title="Abajo">↓</button>
+                            <div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 border-t border-slate-700/50 pt-2">
+                    <label class="block text-[9px] font-bold text-slate-300 mb-1 flex justify-between"><span>Transparencia de Textos</span> <span id="valTextsOp">100%</span></label>
+                    <input type="range" id="cfgTextsOpacity" min="20" max="100" value="100" oninput="updateLivePreview()" class="w-full accent-emerald-500 h-2 bg-slate-700 rounded-lg">
+                </div>
+            </div>
+        </div>
+      </details>
+
+      <!-- CAJA PRECIO -->
+      <details class="glass-panel rounded-2xl shadow-xl border border-amber-500/30">
+        <summary class="p-4 cursor-pointer flex justify-between items-center bg-slate-800/80 hover:bg-slate-700/80 select-none rounded-2xl">
+          <span class="font-extrabold text-sm text-amber-400 uppercase tracking-wider truncate pr-2">Caja Precio Central</span>
+          <svg class="w-5 h-5 flex-shrink-0 chevron transition-transform duration-300 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </summary>
+        <div class="bg-slate-900/80 p-3 rounded-b-2xl border border-slate-700/50">
+            <div class="grid grid-cols-1 gap-3 mb-3">
+              <label class="flex items-center gap-2 text-[10px] font-bold text-amber-300 cursor-pointer">
+                  <input type="checkbox" id="cfgShowPriceBox" checked onchange="updateDesignConfig(); updateLivePreview();" class="accent-amber-500 w-3 h-3"> Mostrar Caja de Precio
+              </label>
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Título de Propiedad</label>
+                <input type="text" id="inputTitle" value="EXCELENTE 2 AMB CON COCHERA" maxlength="60" oninput="updateLivePreview()" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none transition-all">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Precio</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-400 font-bold text-sm">U$D</span>
+                  <input type="tel" id="inputPrice" value="86.500" maxlength="15" oninput="handlePriceInput(event)" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl pl-11 pr-2 py-2 text-sm font-bold text-white focus:outline-none transition-all">
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold text-slate-300 mb-1">Posición del Precio</label>
+              <select id="cfgPricePos" onchange="updateDesignConfig()" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none">
+                <option value="TC">1. Arriba Centro</option>
+                <option value="TL">2. Arriba Izquierda</option>
+                <option value="TR">3. Arriba Derecha</option>
+                <option value="CC" selected>4. Centro Centro</option>
+                <option value="CR">5. Centro Derecha</option>
+                <option value="CL">6. Centro Izquierda</option>
+                <option value="BC">7. Abajo Centro</option>
+                <option value="BR">8. Abajo Derecha</option>
+                <option value="BL">9. Abajo Izquierda</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 mt-2">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-300 mb-1">Ancho Caja</label>
+                    <div class="flex gap-2">
+                        <button onclick="resizePriceBox('width', -1)" class="w-10 h-7 bg-slate-700 hover:bg-slate-600 rounded text-white font-bold text-lg leading-none">-</button>
+                        <button onclick="resizePriceBox('width', 1)" class="w-10 h-7 bg-slate-700 hover:bg-slate-600 rounded text-white font-bold text-lg leading-none">+</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-300 mb-1">Alto Caja</label>
+                    <div class="flex gap-2">
+                        <button onclick="resizePriceBox('height', -1)" class="w-10 h-7 bg-slate-700 hover:bg-slate-600 rounded text-white font-bold text-lg leading-none">-</button>
+                        <button onclick="resizePriceBox('height', 1)" class="w-10 h-7 bg-slate-700 hover:bg-slate-600 rounded text-white font-bold text-lg leading-none">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2 border-t border-slate-700/50 pt-2">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-300 mb-1">Fuente Caja</label>
+                    <select id="cfgPriceFont" onchange="updateDesignConfig(); updateLivePreview();" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2 py-1 text-xs text-white focus:outline-none">
+                        <option value="Montserrat" selected>Montserrat</option>
+                        <option value="Poppins">Poppins</option>
+                        <option value="Roboto">Roboto</option>
+                        <option value="Lato">Lato</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-300 mb-1">Tamaño Título</label>
+                    <input type="range" id="cfgTitleSize" min="50" max="150" value="100" oninput="updateDesignConfig(); updateLivePreview();" class="w-full accent-amber-500 h-2 bg-slate-700 rounded mt-2">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-300 mb-1">Tamaño Precio</label>
+                    <input type="range" id="cfgPriceSize" min="50" max="150" value="100" oninput="updateDesignConfig(); updateLivePreview();" class="w-full accent-amber-500 h-2 bg-slate-700 rounded mt-2">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 mt-2 border-t border-slate-700/50 pt-2">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-300 mb-1">Escala Global Caja</label>
+                    <div class="flex gap-2">
+                        <button onclick="zoomPriceBox(-1)" class="w-10 h-7 bg-slate-700 hover:bg-slate-600 rounded text-white font-bold text-lg leading-none flex items-center justify-center shadow transition-transform active:scale-95">-</button>
+                        <button onclick="zoomPriceBox(1)" class="w-10 h-7 bg-slate-700 hover:bg-slate-600 rounded text-white font-bold text-lg leading-none flex items-center justify-center shadow transition-transform active:scale-95">+</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-300 mb-1">Estilo de Esquinas</label>
+                    <select id="cfgPriceRadius" onchange="updateDesignConfig()" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2 py-1 text-xs text-white focus:outline-none">
+                        <option value="16" selected>Redondeadas</option>
+                        <option value="0">Rectas (90°)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 mt-2">
+                <div><label class="block text-[10px] font-bold text-slate-300 mb-1">Color Fondo</label><input type="color" id="cfgPriceBg" value="#2C3280" onchange="updateDesignConfig()"></div>
+                <div><label class="block text-[10px] font-bold text-slate-300 mb-1">Color Borde</label><input type="color" id="cfgPriceBorderColor" value="#ffffff" onchange="updateDesignConfig()"></div>
+            </div>
+
+            <div class="mt-3 border-t border-slate-700/50 pt-2">
+                <label class="block text-[10px] font-bold text-slate-300 mb-2 text-center">Ajuste Fino (Posición)</label>
+                <div class="grid grid-cols-3 gap-1 w-24 mx-auto">
+                    <div></div>
+                    <button onclick="movePriceBox(0, -1)" class="w-8 h-8 bg-slate-700 hover:bg-slate-600 rounded flex items-center justify-center text-white text-lg font-bold shadow active:scale-95" title="Arriba">↑</button>
+                    <div></div>
+                    <button onclick="movePriceBox(-1, 0)" class="w-8 h-8 bg-slate-700 hover:bg-slate-600 rounded flex items-center justify-center text-white text-lg font-bold shadow active:scale-95" title="Izquierda">←</button>
+                    <button onclick="movePriceBox(0, 0)" class="w-8 h-8 bg-slate-800 rounded flex items-center justify-center text-slate-500 text-sm font-bold border border-slate-600" title="Resetear Centro">O</button>
+                    <button onclick="movePriceBox(1, 0)" class="w-8 h-8 bg-slate-700 hover:bg-slate-600 rounded flex items-center justify-center text-white text-lg font-bold shadow active:scale-95" title="Derecha">→</button>
+                    <div></div>
+                    <button onclick="movePriceBox(0, 1)" class="w-8 h-8 bg-slate-700 hover:bg-slate-600 rounded flex items-center justify-center text-white text-lg font-bold shadow active:scale-95" title="Abajo">↓</button>
+                    <div></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-700/50 mt-2">
+                <div>
+                    <label class="block text-[9px] font-bold text-slate-300 mb-1 flex justify-between"><span>Grosor Borde</span> <span id="valPriceBorder">2px</span></label>
+                    <input type="range" id="cfgPriceBorderWidth" min="0" max="10" value="2" oninput="updateDesignConfig()" class="w-full accent-blue-500 h-2 bg-slate-700 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-[9px] font-bold text-slate-300 mb-1 flex justify-between"><span>Opacidad</span> <span id="valPriceOp">100%</span></label>
+                    <input type="range" id="cfgPriceOpacity" min="20" max="100" value="100" oninput="updateDesignConfig()" class="w-full accent-blue-500 h-2 bg-slate-700 rounded-lg">
+                </div>
+            </div>
+            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-300 cursor-pointer pt-2">
+                <input type="checkbox" id="cfgFluoPrice" onchange="updateDesignConfig()" class="accent-amber-500 w-3 h-3"> Fluo Caja
+            </div>
+        </div>
+      </details>
+
+      <!-- 6. FICHA SUPERPUESTA -->
+      <details class="glass-panel rounded-2xl shadow-xl border border-fuchsia-500/30">
+        <summary class="p-4 cursor-pointer flex justify-between items-center bg-slate-800/80 hover:bg-slate-700/80 select-none rounded-2xl">
+          <span class="font-extrabold text-sm text-fuchsia-400 uppercase tracking-wider truncate pr-2">6. Ficha Superpuesta</span>
+          <svg class="w-5 h-5 flex-shrink-0 chevron transition-transform duration-300 text-fuchsia-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </summary>
+        <div class="p-4 space-y-4 border-t border-slate-700/50 bg-slate-900/40 rounded-b-2xl">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-300 mb-2">Características (Una por línea)</label>
+              <textarea id="inputFeatures" rows="4" placeholder="Living amplio&#10;Amueblado&#10;Calefacción por GN&#10;Patio con parrilla" oninput="updateLivePreview()" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-fuchsia-500 transition-all resize-none"></textarea>
+            </div>
+            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/50 space-y-3">
+                <div class="mb-2">
+                    <label class="block text-[10px] font-bold text-slate-300 mb-1">Ubicación de la Ficha</label>
+                    <select id="cfgOverlayPos" onchange="updateDesignConfig(); updatePhotoControlsUI();" class="w-full bg-slate-800 border border-fuchsia-500/50 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none font-bold">
+                        <optgroup label="Flotante (Libre)">
+                            <option value="BL">Abajo Izquierda</option>
+                            <option value="BC">Abajo Centro</option>
+                            <option value="BR">Abajo Derecha</option>
+                            <option value="TL">Arriba Izquierda</option>
+                            <option value="TC">Arriba Centro</option>
+                            <option value="TR">Arriba Derecha</option>
+                            <option value="CC">Centro</option>
+                        </optgroup>
+                        <optgroup label="Reemplazar Foto en Grilla">
+                            <option value="P1">Ocupar Panel Foto 1</option>
+                            <option value="P2">Ocupar Panel Foto 2</option>
+                            <option value="P3">Ocupar Panel Foto 3</option>
+                            <option value="P4">Ocupar Panel Foto 4</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-700/50">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-300 mb-1">Color Fondo</label>
+                        <input type="color" id="cfgOverlayBg" value="#000000" onchange="updateDesignConfig(); updateLivePreview();">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-300 mb-1">Color Texto</label>
+                        <input type="color" id="cfgOverlayText" value="#ffffff" onchange="updateDesignConfig()">
+                    </div>
+                </div>
+                <div class="pt-2 border-t border-slate-700/50">
+                    <label class="block text-[10px] font-bold text-slate-300 mb-1">Icono de Viñeta (Contraste Auto)</label>
+                    <select id="cfgBulletType" onchange="updateLivePreview()" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2 py-1 text-sm text-white focus:outline-none text-center">
+                        <option value="•">• Círculo</option>
+                        <option value="✓">✓ Tilde</option>
+                        <option value="→">→ Flecha</option>
+                        <option value="★">★ Estrella</option>
+                        <option value="■">■ Cuadrado</option>
+                    </select>
+                </div>
+                <div class="pt-2 border-t border-slate-700/50">
+                    <label class="block text-[9px] font-bold text-slate-300 mb-1 flex justify-between"><span>Transparencia Fondo</span> <span id="valOverlayOp">50%</span></label>
+                    <input type="range" id="cfgOverlayOpacity" min="0" max="100" value="50" oninput="updateDesignConfig()" class="w-full accent-fuchsia-500 h-2 bg-slate-700 rounded-lg">
+                </div>
+            </div>
+        </div>
+      </details>
+      
+      <button onclick="exportToCanvas()" id="btnDownloadDesktop" class="hidden lg:flex w-full mt-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] transform transition hover:-translate-y-0.5 items-center justify-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        <span id="txtDownloadDesktop">Descargar Placa HD</span>
+      </button>
+
+      <button onclick="logoutUser()" class="w-full mt-4 bg-slate-800 hover:bg-red-900/50 border border-red-500/30 text-red-400 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+        Cerrar Sesión
+      </button>
+
+      <div class="w-full text-center mt-6 pb-4">
+          <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-widest">Desarrollado por Mauro César Scarfatti</p>
+          <a href="mailto:mauroscarfatti@gmail.com" class="text-[10px] text-blue-400 hover:text-blue-300 transition-colors font-medium">mauroscarfatti@gmail.com</a>
+          <p class="text-[9px] text-slate-600 font-mono mt-1" title="Control de Versiones">v1.30.1-Auth</p>
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL: LIVE PREVIEW -->
+    <div id="panel-preview" class="flex flex-1 flex-col bg-slate-950 items-center justify-center p-2 sm:p-6 overflow-hidden relative h-full transition-colors duration-300">
+      
+      <div class="absolute top-4 right-4 z-[60] flex items-center gap-2 glass-panel p-2 rounded-xl border border-slate-600/50 shadow-lg">
+        <select id="previewPlatform" onchange="syncPlatform(this.value)" class="bg-slate-800 text-xs text-white rounded-lg px-2 py-1.5 focus:outline-none cursor-pointer border border-slate-700">
+            <option value="instagram_safe">Story / Estado (9:16)</option>
+            <option value="instagram_feed">Feed Vertical (4:5)</option>
+            <option value="instagram_square">Feed Cuadrado (1:1)</option>
+            <option value="whatsapp">WhatsApp Full</option>
+        </select>
+        <select id="previewLayout" onchange="syncLayout(this.value); updatePhotoControlsUI();" class="bg-slate-800 text-xs text-emerald-400 font-bold rounded-lg px-2 py-1.5 focus:outline-none cursor-pointer border border-slate-700">
+            <option value="1">1 Medio</option>
+            <option value="2">2 Medios</option>
+            <option value="3" selected>3 Medios</option>
+            <option value="4">4 Medios</option>
+        </select>
+      </div>
+
+      <div class="flex-1 w-full flex flex-col items-center justify-center min-h-0 pt-12 lg:pt-0">
+          <div id="captureArea" class="story-aspect-ratio bg-slate-900 rounded-2xl shadow-2xl flex flex-col relative overflow-hidden border-institutional border-white" style="border-width: 6px;">
+            
+            <div id="unified-badges-container" class="absolute z-30 pointer-events-none p-4" style="top:0; left:0; right:0; bottom:0; display:flex;">
+                <div id="unified-badges-wrapper" class="pointer-events-auto transition-shadow overflow-hidden" style="background-color: transparent !important; padding: 0.25rem 0.5rem; display: flex; max-width: 90%; flex-wrap: wrap; justify-content: center; box-sizing: border-box;">
+                </div>
+            </div>
+
+            <div id="photoGridArea" class="w-full bg-slate-950 relative z-10" style="height: 82%;">
+                
+                <div id="overlay-features" onclick="focusEditor('inputFeatures')" class="interactive-element absolute z-30 pointer-events-auto p-2 sm:p-3 md:p-4 rounded-xl flex flex-col justify-center transition-all overflow-hidden" style="display:none; background-color: var(--overlay-bg); color: var(--overlay-text); backdrop-filter: blur(4px); max-width: 85%;" title="Tocar para editar Ficha">
+                    <ul id="overlay-features-list" class="space-y-1 font-semibold text-[8px] sm:text-[10px] md:text-[11px] tracking-wide relative z-10"></ul>
+                </div>
+
+                <div id="photoGrid" class="grid-layout-3">
+                    <div class="relative overflow-hidden bg-slate-800 hero-img" id="container_img1">
+                        <div class="frame-viewport group" id="viewport_img1" title="Doble clic o tap rápido para subir foto. Arrastrar para mover.">
+                            <img id="img1" class="frame-image" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MDAiIGhlaWdodD0iNTAwIj48cmVjdCB3aWR0aD0iNTAwIiBoZWlnaHQ9IjUwMCIgZmlsbD0iIzFlMjkzYiIvPjx0ZXh0IHg9IjI1MCIgeT0iMjUwIiBmaWxsPSIjY2JkNWUxIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSI1MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+Rk9UTzwvdGV4dD48L3N2Zz4=" alt="1" onload="initFrame('img1')">
+                            <video id="vid1" class="frame-image hidden" muted loop playsinline onloadedmetadata="initFrame('img1')"></video>
+                            <img id="wmk_img1" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" class="absolute w-2/5 opacity-15 grayscale pointer-events-none z-20 hidden">
+                        </div>
+                    </div>
+                    <div class="relative overflow-hidden bg-slate-800" id="container_img2">
+                        <div class="frame-viewport group" id="viewport_img2">
+                            <img id="img2" class="frame-image" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MDAiIGhlaWdodD0iNTAwIj48cmVjdCB3aWR0aD0iNTAwIiBoZWlnaHQ9IjUwMCIgZmlsbD0iIzFlMjkzYiIvPjx0ZXh0IHg9IjI1MCIgeT0iMjUwIiBmaWxsPSIjY2JkNWUxIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSI1MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+Rk9UTzwvdGV4dD48L3N2Zz4=" alt="2" onload="initFrame('img2')">
+                            <video id="vid2" class="frame-image hidden" muted loop playsinline onloadedmetadata="initFrame('img2')"></video>
+                            <img id="wmk_img2" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" class="absolute w-2/3 opacity-15 grayscale pointer-events-none z-20 hidden">
+                        </div>
+                    </div>
+                    <div class="relative overflow-hidden bg-slate-800" id="container_img3">
+                        <div class="frame-viewport group" id="viewport_img3">
+                            <img id="img3" class="frame-image" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MDAiIGhlaWdodD0iNTAwIj48cmVjdCB3aWR0aD0iNTAwIiBoZWlnaHQ9IjUwMCIgZmlsbD0iIzFlMjkzYiIvPjx0ZXh0IHg9IjI1MCIgeT0iMjUwIiBmaWxsPSIjY2JkNWUxIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSI1MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+Rk9UTzwvdGV4dD48L3N2Zz4=" alt="3" onload="initFrame('img3')">
+                            <video id="vid3" class="frame-image hidden" muted loop playsinline onloadedmetadata="initFrame('img3')"></video>
+                            <img id="wmk_img3" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" class="absolute w-2/3 opacity-15 grayscale pointer-events-none z-20 hidden">
+                        </div>
+                    </div>
+                    <div class="relative overflow-hidden bg-slate-800 hidden" id="container_img4">
+                        <div class="frame-viewport group" id="viewport_img4">
+                            <img id="img4" class="frame-image" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MDAiIGhlaWdodD0iNTAwIj48cmVjdCB3aWR0aD0iNTAwIiBoZWlnaHQ9IjUwMCIgZmlsbD0iIzFlMjkzYiIvPjx0ZXh0IHg9IjI1MCIgeT0iMjUwIiBmaWxsPSIjY2JkNWUxIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSI1MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+Rk9UTzwvdGV4dD48L3N2Zz4=" alt="4" onload="initFrame('img4')">
+                            <video id="vid4" class="frame-image hidden" muted loop playsinline onloadedmetadata="initFrame('img4')"></video>
+                            <img id="wmk_img4" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" class="absolute w-2/3 opacity-15 grayscale pointer-events-none z-20 hidden">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Caja Precio Superpuesta -->
+            <div id="floating-title" onclick="focusEditor('inputTitle')" class="interactive-element absolute z-40 p-2 flex flex-col items-center justify-center transition-all box-border overflow-hidden" style="background-color: rgba(var(--price-bg-rgb), var(--price-opacity)); border-color: var(--price-border);" title="Tocar para editar Título">
+              <p id="displayTitle" class="text-white font-extrabold tracking-wider text-center drop-shadow-md uppercase whitespace-nowrap overflow-hidden text-ellipsis w-full pointer-events-none mt-1">EXCELENTE 2 AMB CON COCHERA</p>
+              <div class="bg-amber-400 rounded-full pointer-events-none"></div>
+              <p id="displayPrice" class="text-amber-300 font-black drop-shadow-lg tracking-tight w-full text-center truncate pointer-events-none leading-none mb-1">U$D 86.500</p>
+            </div>
+
+            <!-- FOOTER -->
+            <div id="footer-container" class="w-full flex flex-col relative z-30 border-t-2 items-center justify-evenly box-border" style="height: 18%; background-color: var(--footer-bg); padding: 1.5cqi 3.7cqi;">
+              <div class="flex items-center justify-between w-full" id="footer-content-wrapper">
+                
+                <div id="footer-agent-block" class="flex items-center w-[65%]" style="gap: 1.85cqi;">
+                  <div id="footer-avatar" class="rounded-full border-solid overflow-hidden shadow-md shrink-0 flex items-center justify-center" style="background-color: var(--footer-bg);">
+                    <img id="imgAgent" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2NiZDVlMSIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iNDAiIHI9IjIwIiBmaWxsPSIjOTRhM2I4Ii8+PHBhdGggZD0iTTIwIDEwMCBRIDUwIDYwIDgwIDEwMCIgZmlsbD0iIzk0YTNiOCIvPjwvc3ZnPg==" class="w-full h-full object-cover">
+                  </div>
+                  <div class="flex flex-col justify-center footer-text-container" style="color: var(--footer-text);">
+                    <p class="font-extrabold leading-tight mb-0.5 uppercase">Mauro Cesar Scarfatti</p>
+                    <p class="font-semibold leading-tight opacity-80">COMADO Tomo III Folio 841 N° 1497</p>
+                  </div>
+                </div>
+
+                <div id="footer-logo-block" class="h-full flex items-center justify-end" style="width: 22%;">
+                    <img id="imgLogo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" class="w-full object-contain object-right drop-shadow-sm" style="max-height: 90%;">
+                </div>
+
+              </div>
+              
+              <div id="whatsapp-button-container" onclick="focusEditor('inputPhone')" class="interactive-element bg-green-500 flex items-center justify-center gap-2 shadow-[0_4px_10px_rgba(34,197,94,0.3)] z-50 mx-auto" style="width: 55.55cqi; height: 4.39cqi; border-radius: 2.19cqi;" title="Tocar para editar Teléfono">
+                <svg class="text-white pointer-events-none" style="width: 2.22cqi; height: 2.22cqi;" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.38c-.297-.149-1.758-.868-2.03-.967-.271-.099-.471-.148-.669.149-.198.297-.767.966-.94 1.164-.173.198-.346.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.479-1.76-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.346.446-.521.151-.172.198-.297.298-.495.099-.198.05-.371-.025-.52-.075-.149-.669-1.61-.918-2.206-.242-.579-.487-.5-.669-.51-.173-.01-.371-.01-.569-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479s1.04 2.479 2.479 2.479c.272.396 1.683 2.566 4.075 3.575.569.238 1.016.381 1.361.488.574.182 1.094.156 1.505.095.463-.07 1.426-.582 1.624-1.145.198-.563.198-1.04.138-1.145s-.247-.148-.545-.297zM12 2C6.477 2 2 6.477 2 12c0 1.746.44 3.397 1.224 4.838L1 22l4.894-1.184C7.554 21.566 9.72 22 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18.467c-1.552 0-3.036-.411-4.354-1.192l-.311-.184-3.23.848.863-3.15-.202-.321C3.269 14.892 2.6 11.424 2.6 10.033 2.6 4.762 4.762 2.6 10.033 2.6c5.27 0 7.432 2.161 7.432 7.432S17.3 18.467 12 18.467z"/></svg>
+                <span id="displayPhone" class="text-white font-bold tracking-wide pointer-events-none" style="font-size: 2.22cqi;">+54 9 2267 443404</span>
+              </div>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="exportCanvas" class="hidden"></canvas>
+
+  <script>
+    function checkTC() {
+        const modal = document.getElementById('tcModal');
+        if (localStorage.getItem('mcs_tc_accepted') !== 'true') {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden'; 
+        }
+    }
+
+    window.acceptTC = function() {
+        localStorage.setItem('mcs_tc_accepted', 'true');
+        const modal = document.getElementById('tcModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = ''; 
+    };
+
+    if (!CanvasRenderingContext2D.prototype.roundRect) {
+      CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+        if (r === 0) { this.rect(x, y, w, h); return this; }
+        if (w < 2 * r) r = w / 2;
+        if (h < 2 * r) r = h / 2;
+        this.beginPath();
+        this.moveTo(x + r, y);
+        this.arcTo(x + w, y, x + w, y + h, r);
+        this.arcTo(x + w, y + h, x, y + h, r);
+        this.arcTo(x, y + h, x, y, r);
+        this.arcTo(x, y, x + w, y, r);
+        this.closePath();
+        return this;
+      }
+    }
+
+    let currentPlatform = 'instagram_safe';
+    let currentLayout = 3;
+    let priceBoxScale = 1.0; 
+    let priceOffsetX = 0; 
+    let priceOffsetY = 0; 
+    let textsScale = 1.0; 
+    let textsOffsetX = 0; 
+    let textsOffsetY = 0; 
+    let priceBoxWidthMult = 1.0;
+    let priceBoxHeightMult = 1.0;
+    
+    function getContrastYIQ(hexcolor){
+        hexcolor = hexcolor.replace("#", "");
+        if(hexcolor.length === 3) hexcolor = hexcolor.split('').map(c=>c+c).join('');
+        var r = parseInt(hexcolor.substr(0,2),16);
+        var g = parseInt(hexcolor.substr(2,2),16);
+        var b = parseInt(hexcolor.substr(4,2),16);
+        var yiq = ((r*299)+(g*587)+(b*114))/1000;
+        return (yiq >= 128) ? '#000000' : '#ffffff';
+    }
+
+    function hexToRgb(hex) {
+        let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '255, 255, 255';
+    }
+    
+    const phPhoto = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MDAiIGhlaWdodD0iNTAwIj48cmVjdCB3aWR0aD0iNTAwIiBoZWlnaHQ9IjUwMCIgZmlsbD0iIzFlMjkzYiIvPjx0ZXh0IHg9IjI1MCIgeT0iMjUwIiBmaWxsPSIjY2JkNWUxIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSI1MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+Rk9UTzwvdGV4dD48L3N2Zz4=';
+    const phAgent = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2NiZDVlMSIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iNDAiIHI9IjIwIiBmaWxsPSIjOTRhM2I4Ii8+PHBhdGggZD0iTTIwIDEwMCBRIDUwIDYwIDgwIDEwMCIgZmlsbD0iIzk0YTNiOCIvPjwvc3ZnPg==';
+    const phBlank = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+
+    const imageDataMap = {
+        img1: phPhoto, img2: phPhoto, img3: phPhoto, img4: phPhoto,
+        imgAgent: phAgent, imgLogo: phBlank
+    };
+
+    const frameState = {
+      img1: { zoom: 1, panX: 0, panY: 0, baseScale: 1, initW:0, initH:0, wmk: false, isVideo: false },
+      img2: { zoom: 1, panX: 0, panY: 0, baseScale: 1, initW:0, initH:0, wmk: false, isVideo: false },
+      img3: { zoom: 1, panX: 0, panY: 0, baseScale: 1, initW:0, initH:0, wmk: false, isVideo: false },
+      img4: { zoom: 1, panX: 0, panY: 0, baseScale: 1, initW:0, initH:0, wmk: false, isVideo: false }
+    };
+
+    window.syncPlatform = function(val) { document.getElementById('inputPlatform').value = val; updatePlatform(val); };
+    window.syncLayout = function(val) { document.getElementById('inputLayout').value = val; updateLayoutGrid(val); };
+
+    window.zoomPriceBox = function(dir) {
+        if (dir > 0 && priceBoxScale < 1.5) priceBoxScale += 0.1;
+        else if (dir < 0 && priceBoxScale > 0.5) priceBoxScale -= 0.1;
+        updateDesignConfig();
+    };
+
+    window.resizePriceBox = function(axis, dir) {
+        if (axis === 'width') {
+            if (dir > 0 && priceBoxWidthMult < 3.0) priceBoxWidthMult += 0.1;
+            else if (dir < 0 && priceBoxWidthMult > 0.3) priceBoxWidthMult -= 0.1;
+        } else if (axis === 'height') {
+            if (dir > 0 && priceBoxHeightMult < 3.0) priceBoxHeightMult += 0.1;
+            else if (dir < 0 && priceBoxHeightMult > 0.3) priceBoxHeightMult -= 0.1;
+        }
+        updateDesignConfig();
+    };
+
+    window.movePriceBox = function(dx, dy) {
+        if (dx === 0 && dy === 0) { priceOffsetX = 0; priceOffsetY = 0; } 
+        else { priceOffsetX += dx; priceOffsetY += dy; }
+        updateDesignConfig();
+    };
+
+    window.zoomTexts = function(dir) {
+        if (dir > 0 && textsScale < 2.0) textsScale += 0.1;
+        else if (dir < 0 && textsScale > 0.5) textsScale -= 0.1;
+        updateLivePreview();
+    };
+
+    window.moveTexts = function(dx, dy) {
+        if (dx === 0 && dy === 0) { textsOffsetX = 0; textsOffsetY = 0; } 
+        else { textsOffsetX += dx; textsOffsetY += dy; }
+        updateDesignConfig();
+    };
+
+    window.resetTextPos = function() { textsOffsetX = 0; textsOffsetY = 0; updateLivePreview(); };
+
+    window.focusEditor = function(inputId) {
+        if(window.innerWidth < 1024) switchMobileTab('controls');
+        const el = document.getElementById(inputId);
+        if(el) {
+            el.scrollIntoView({behavior: 'smooth', block: 'center'});
+            el.focus(); el.classList.add('ring-4', 'ring-blue-500');
+            setTimeout(() => el.classList.remove('ring-4', 'ring-blue-500'), 800);
+        }
+    };
+
+    window.toggleSidebar = function() {
+        document.body.classList.toggle('sidebar-closed');
+        if(window.innerWidth < 1024) {
+            if(document.body.classList.contains('sidebar-closed')) {
+                document.getElementById('panel-controls').classList.add('hidden');
+                document.getElementById('panel-preview').classList.remove('hidden');
+                document.getElementById('panel-preview').classList.add('flex');
+            }
+        }
+    };
+
+    window.switchMobileTab = function(tab) {
+      const controls = document.getElementById('panel-controls');
+      const preview = document.getElementById('panel-preview');
+      const btnCtrl = document.getElementById('tab-controls');
+      const btnPrev = document.getElementById('tab-preview');
+      
+      document.body.classList.remove('sidebar-closed'); 
+      
+      if (tab === 'controls') {
+        controls.classList.remove('hidden'); preview.classList.add('hidden'); preview.classList.remove('flex');
+        btnCtrl.classList.add('mobile-tab-active'); btnPrev.classList.remove('mobile-tab-active');
+      } else {
+        controls.classList.add('hidden'); preview.classList.remove('hidden'); preview.classList.add('flex');
+        btnPrev.classList.add('mobile-tab-active'); btnCtrl.classList.remove('mobile-tab-active');
+        setTimeout(() => { for(let i=1; i<=currentLayout; i++) initFrame('img'+i); }, 100);
+      }
+    };
+
+    window.toggleUITheme = function() {
+        const isLight = document.getElementById('uiThemeToggle').checked;
+        const appLogo = document.getElementById('mainAppLogo');
+        if (isLight) {
+            document.body.classList.add('light-theme');
+            localStorage.setItem('mcs_theme', 'light');
+            if(appLogo) appLogo.src = 'Logo%20SocialGraf%20Web.jpeg';
+        } else {
+            document.body.classList.remove('light-theme');
+            localStorage.setItem('mcs_theme', 'dark');
+            if(appLogo) appLogo.src = 'Logo%20SocialGraf%20Web%20Black.jpeg';
+        }
+    };
+
+    window.toggleGradientUI = function() {
+        const isGrad = document.getElementById('cfgGradientBorder').checked;
+        document.getElementById('boxBorderColor2').style.display = isGrad ? 'block' : 'none';
+        document.getElementById('boxBorderColor3').style.display = isGrad ? 'block' : 'none';
+        document.getElementById('lblBorderColor1').innerText = isGrad ? 'Color 1 (Inicio)' : 'Color Borde Único';
+        updateDesignConfig();
+    };
+
+    window.toggleGapUI = function() {
+        const isGrad = document.getElementById('cfgGradientGap').checked;
+        document.getElementById('boxGapColor2').style.display = isGrad ? 'block' : 'none';
+        document.getElementById('boxGapColor3').style.display = isGrad ? 'block' : 'none';
+        document.getElementById('lblGapColor1').innerText = isGrad ? 'Color 1 (Inicio)' : 'Color Único';
+        updateDesignConfig();
+    };
+
+    window.updatePhotoControlsUI = function() { buildControls(); };
+
+    window.updateDesignConfig = function() {
+        const pBox = document.getElementById('floating-title'); 
+        const overBox = document.getElementById('overlay-features');
+        const root = document.documentElement;
+        
+        const showPriceBox = document.getElementById('cfgShowPriceBox').checked;
+        pBox.style.display = showPriceBox ? 'flex' : 'none';
+
+        root.style.setProperty('--main-font', `'${document.getElementById('cfgFontFamily').value}', sans-serif`);
+        root.style.setProperty('--footer-bg', document.getElementById('cfgColorFooterBg').value);
+        root.style.setProperty('--footer-text', document.getElementById('cfgColorFooterText').value);
+        root.style.setProperty('--price-border', document.getElementById('cfgPriceBorderColor').value);
+
+        const hexBg = document.getElementById('cfgPriceBg').value;
+        const opc = document.getElementById('cfgPriceOpacity').value;
+        document.getElementById('valPriceOp').innerText = opc + '%';
+        root.style.setProperty('--price-bg-rgb', hexToRgb(hexBg));
+        root.style.setProperty('--price-opacity', opc / 100);
+
+        const priceBorderW = document.getElementById('cfgPriceBorderWidth').value;
+        const priceRad = document.getElementById('cfgPriceRadius').value;
+        document.getElementById('valPriceBorder').innerText = priceBorderW + 'px';
+        pBox.style.borderWidth = (priceBorderW * priceBoxScale) + 'px';
+        pBox.style.borderStyle = priceBorderW > 0 ? 'solid' : 'none';
+        pBox.style.borderRadius = (priceRad * priceBoxScale) + 'px';
+
+        const overlayBgHex = document.getElementById('cfgOverlayBg').value;
+        const overlayOp = document.getElementById('cfgOverlayOpacity').value;
+        document.getElementById('valOverlayOp').innerText = overlayOp + '%';
+        root.style.setProperty('--overlay-bg', `rgba(${hexToRgb(overlayBgHex)}, ${overlayOp/100})`);
+        root.style.setProperty('--overlay-text', document.getElementById('cfgOverlayText').value);
+
+        const gapVal = document.getElementById('cfgGapWidth').value;
+        document.getElementById('valGapWidth').innerText = gapVal + 'px';
+        const pGrid = document.getElementById('photoGrid');
+        pGrid.style.gap = gapVal + 'px';
+        
+        const isGapGrad = document.getElementById('cfgGradientGap').checked;
+        const gc1 = document.getElementById('cfgGapColor1').value;
+        const gc2 = document.getElementById('cfgGapColor2').value;
+        const gc3 = document.getElementById('cfgGapColor3').value;
+        
+        if (gapVal == 0) pGrid.style.background = 'transparent';
+        else if (isGapGrad) pGrid.style.background = `linear-gradient(to bottom right, ${gc1}, ${gc2}, ${gc3})`;
+        else pGrid.style.background = gc1;
+
+        const isGrad = document.getElementById('cfgGradientBorder').checked;
+        const b1 = document.getElementById('cfgBorderColor1').value;
+        const b2 = document.getElementById('cfgBorderColor2').value;
+        const b3 = document.getElementById('cfgBorderColor3').value;
+        const capArea = document.getElementById('captureArea');
+        
+        if (isGrad) {
+            capArea.style.borderImage = `linear-gradient(to bottom right, ${b1}, ${b2}, ${b3}) 1`;
+            capArea.style.borderColor = 'transparent';
+        } else {
+            capArea.style.borderImage = 'none'; capArea.style.borderColor = b1;
+        }
+        capArea.style.borderWidth = '6px'; 
+
+        if(document.getElementById('cfgFluoPrice').checked) pBox.style.boxShadow = `0 0 15px ${hexBg}`;
+        else pBox.style.boxShadow = 'none';
+
+        const pos = document.getElementById('cfgPricePos').value;
+        pBox.style.transform = 'none'; pBox.style.top = 'auto'; pBox.style.bottom = 'auto'; pBox.style.left = 'auto'; pBox.style.right = 'auto';
+
+        const pTitle = document.getElementById('displayTitle');
+        const pPrice = document.getElementById('displayPrice');
+        const pSep = pBox.querySelector('div.bg-amber-400');
+        
+        const isNarrow = ['CR','CL','BR','BL'].includes(pos);
+        const pFont = document.getElementById('cfgPriceFont').value || 'Montserrat';
+        const titleScale = parseInt(document.getElementById('cfgTitleSize').value, 10) / 100;
+        const priceScale = parseInt(document.getElementById('cfgPriceSize').value, 10) / 100;
+
+        pBox.style.fontFamily = `'${pFont}', sans-serif`;
+
+        let baseW = isNarrow ? 46.29 : 69.44;
+        let baseH = 9.5; 
+        pBox.style.width = (baseW * priceBoxScale * priceBoxWidthMult) + 'cqi'; 
+        pBox.style.height = (baseH * priceBoxScale * priceBoxHeightMult) + 'cqi';
+
+        if (isNarrow) {
+            pTitle.style.fontSize = (1.11 * priceBoxScale * titleScale) + 'cqi';
+            pPrice.style.fontSize = (2.22 * priceBoxScale * priceScale) + 'cqi';
+        } else {
+            pTitle.style.fontSize = (1.48 * priceBoxScale * titleScale) + 'cqi';
+            pPrice.style.fontSize = (3.33 * priceBoxScale * priceScale) + 'cqi';
+        }
+
+        pSep.style.width = (11.11 * priceBoxScale) + 'cqi';
+        pSep.style.height = (0.37 * priceBoxScale) + 'cqi';
+        pSep.style.margin = (0.2 * priceBoxScale) + 'cqi 0';
+
+        let offX = priceOffsetX + 'cqi';
+        let offY = priceOffsetY + 'cqi';
+        pBox.style.marginLeft = offX; pBox.style.marginTop = offY;
+
+        if (pos === 'TC') { pBox.style.top = '1.85cqi'; pBox.style.left = '50%'; pBox.style.transform = `translateX(-50%)`; } 
+        else if (pos === 'TL') { pBox.style.top = '1.85cqi'; pBox.style.left = '1.85cqi'; } 
+        else if (pos === 'TR') { pBox.style.top = '1.85cqi'; pBox.style.right = '1.85cqi'; } 
+        else if (pos === 'CC') { pBox.style.top = '41.5%'; pBox.style.left = '50%'; pBox.style.transform = `translate(-50%, -50%)`; } 
+        else if (pos === 'CR') { pBox.style.top = '41.5%'; pBox.style.right = '1.85cqi'; pBox.style.transform = `translateY(-50%)`; } 
+        else if (pos === 'CL') { pBox.style.top = '41.5%'; pBox.style.left = '1.85cqi'; pBox.style.transform = `translateY(-50%)`; } 
+        else if (pos === 'BC') { pBox.style.bottom = '18%'; pBox.style.left = '50%'; pBox.style.transform = `translate(-50%, -1.85cqi)`; } 
+        else if (pos === 'BR') { pBox.style.bottom = '18%'; pBox.style.right = '1.85cqi'; pBox.style.transform = `translateY(-1.85cqi)`; } 
+        else if (pos === 'BL') { pBox.style.bottom = '18%'; pBox.style.left = '1.85cqi'; pBox.style.transform = `translateY(-1.85cqi)`; }
+
+        const bCont = document.getElementById('unified-badges-container');
+        const bWrap = document.getElementById('unified-badges-wrapper');
+        const bPosGlobal = document.getElementById('cfgBadgePos').value;
+        bCont.style.top = '0'; bCont.style.bottom = '0';
+        bCont.style.alignItems = 'flex-start'; bCont.style.justifyContent = 'flex-start';
+        
+        if (bPosGlobal.startsWith('T')) { bCont.style.top = '1.85cqi'; bCont.style.bottom = 'auto'; } 
+        else if (bPosGlobal.startsWith('B')) { bCont.style.top = 'auto'; bCont.style.bottom = 'calc(18% + 1.85cqi)'; }
+        else { bCont.style.top = '41.5%'; bCont.style.bottom = 'auto'; bCont.style.transform = 'translateY(-50%)'; }
+        
+        bCont.style.alignItems = bPosGlobal.startsWith('T') ? 'flex-start' : (bPosGlobal.startsWith('B') ? 'flex-end' : 'flex-start');
+        
+        if (bPosGlobal.endsWith('L')) bCont.style.justifyContent = 'flex-start';
+        else if (bPosGlobal.endsWith('R')) bCont.style.justifyContent = 'flex-end';
+        else bCont.style.justifyContent = 'center';
+
+        const isInline = (bPosGlobal === 'TC' || bPosGlobal === 'BC');
+        bWrap.style.flexDirection = isInline ? 'row' : 'column';
+        bWrap.style.alignItems = bPosGlobal.endsWith('L') ? 'flex-start' : (bPosGlobal.endsWith('R') ? 'flex-end' : 'center');
+        
+        bWrap.style.gap = isInline ? (1.38 * textsScale) + 'cqi' : (0.5 * textsScale) + 'cqi'; 
+        bWrap.style.padding = (1.48 * textsScale) + 'cqi ' + (1.85 * textsScale) + 'cqi';
+        bWrap.style.marginLeft = textsOffsetX + 'cqi';
+        bWrap.style.marginTop = textsOffsetY + 'cqi';
+
+        const overList = document.getElementById('overlay-features-list');
+        overBox.style.padding = '1.48cqi 1.85cqi';
+        overBox.style.borderRadius = '1.11cqi';
+        overList.style.fontSize = '1.66cqi';
+        overList.style.lineHeight = '2.4cqi';
+
+        let overlayPos = document.getElementById('cfgOverlayPos').value;
+        const currentL = parseInt(document.getElementById('inputLayout').value, 10);
+        
+        if (overlayPos.startsWith('P') && parseInt(overlayPos.charAt(1), 10) > currentL) overlayPos = 'CC'; 
+        
+        overBox.style.top = 'auto'; overBox.style.bottom = 'auto'; overBox.style.left = 'auto'; overBox.style.right = 'auto'; overBox.style.transform = 'none';
+        
+        if (overlayPos.startsWith('P')) {
+            const targetContainer = document.getElementById('container_img' + overlayPos.charAt(1));
+            if (targetContainer) {
+                targetContainer.appendChild(overBox);
+                overBox.style.position = 'absolute'; overBox.style.inset = '0';
+                overBox.style.width = '100%'; overBox.style.height = '100%';
+                overBox.style.maxWidth = 'none'; overBox.style.borderRadius = '0';
+                overBox.style.padding = '5%';
+            }
+        } else {
+            document.getElementById('photoGridArea').appendChild(overBox);
+            overBox.style.position = 'absolute'; overBox.style.width = 'auto'; overBox.style.height = 'auto';
+            overBox.style.maxWidth = '85%'; overBox.style.borderRadius = '0.75rem'; overBox.style.padding = '1rem';
+            
+            let startY = bPosGlobal.startsWith('T') ? '7.4cqi' : '1.85cqi';
+            let botY = bPosGlobal.startsWith('T') ? '18%' : '22%';
+            
+            if (overlayPos === 'TL') { overBox.style.top = startY; overBox.style.left = '1.85cqi'; }
+            else if (overlayPos === 'TR') { overBox.style.top = startY; overBox.style.right = '1.85cqi'; }
+            else if (overlayPos === 'BL') { overBox.style.bottom = botY; overBox.style.left = '1.85cqi'; }
+            else if (overlayPos === 'BR') { overBox.style.bottom = botY; overBox.style.right = '1.85cqi'; }
+            else if (overlayPos === 'TC') { overBox.style.top = startY; overBox.style.left = '50%'; overBox.style.transform = 'translateX(-50%)'; }
+            else if (overlayPos === 'BC') { overBox.style.bottom = botY; overBox.style.left = '50%'; overBox.style.transform = 'translateX(-50%)'; }
+            else if (overlayPos === 'CC') { overBox.style.top = '41.5%'; overBox.style.left = '50%'; overBox.style.transform = 'translate(-50%, -50%)'; }
+        }
+
+        const isSquare = currentPlatform === 'instagram_square';
+        const fAvatar = document.getElementById('footer-avatar');
+        fAvatar.style.width = isSquare ? '9.25cqi' : '11.11cqi';
+        fAvatar.style.height = isSquare ? '9.25cqi' : '11.11cqi';
+        fAvatar.style.borderWidth = '0.55cqi';
+        fAvatar.style.borderColor = b1;
+
+        const fTexts = document.querySelectorAll('#footer-agent-block p');
+        if(fTexts.length > 1) {
+            fTexts[0].style.fontSize = isSquare ? '1.66cqi' : '2.03cqi';
+            fTexts[1].style.fontSize = isSquare ? '1.29cqi' : '1.48cqi';
+        }
+
+        const fLogo = document.getElementById('imgLogo');
+        fLogo.style.maxWidth = '22.22cqi'; fLogo.style.maxHeight = '8.33cqi';
+
+        const wpBtn = document.getElementById('whatsapp-button-container');
+        if(wpBtn) {
+            wpBtn.querySelector('span').style.fontSize = '2.22cqi';
+            wpBtn.querySelector('svg').style.width = '2.22cqi';
+            wpBtn.querySelector('svg').style.height = '2.22cqi';
+        }
+    };
+
+    function buildControls() {
+        const container = document.getElementById('controlsContainer');
+        if(!container) return;
+        
+        const overlayPos = document.getElementById('cfgOverlayPos').value;
+        let htmlStr = '';
+        
+        for(let i = 1; i <= currentLayout; i++) {
+            const isChecked = frameState['img'+i].wmk ? 'checked' : '';
+            const isOverlayReplaced = overlayPos === 'P' + i;
+
+            if (isOverlayReplaced) {
+                htmlStr += `
+                <div class="bg-slate-800 p-4 rounded-xl border-2 border-dashed border-fuchsia-500/50 flex flex-col items-center justify-center h-32">
+                    <svg class="w-8 h-8 text-fuchsia-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <span class="text-[10px] font-bold text-fuchsia-300 text-center uppercase tracking-wider">Bloque Reservado<br>Ficha Superpuesta</span>
+                </div>`;
+            } else {
+                htmlStr += `
+                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 mb-3">
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <button onclick="document.getElementById('fileUpload_${i}').click()" class="flex items-center justify-center w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded-lg cursor-pointer text-[10px] sm:text-xs transition-colors">
+                            📁 Galería / Video
+                        </button>
+                        <button onclick="document.getElementById('cameraUpload_${i}').click()" class="flex items-center justify-center w-full bg-blue-700 hover:bg-blue-600 text-white font-bold py-2 rounded-lg cursor-pointer text-[10px] sm:text-xs transition-colors">
+                            📸 Cámara
+                        </button>
+                        <input id="fileUpload_${i}" type="file" accept="image/*,video/mp4,video/webm,video/quicktime" onchange="handlePropImageUpload(event, 'img${i}')" class="hidden">
+                        <input id="cameraUpload_${i}" type="file" accept="image/*,video/*" capture="environment" onchange="handlePropImageUpload(event, 'img${i}')" class="hidden">
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 bg-slate-900/80 p-2 rounded-lg">
+                      <div class="flex flex-col items-center">
+                        <label class="text-[9px] text-slate-400 font-bold mb-1">ZOOM</label>
+                        <input type="range" id="slider_zoom_img${i}" class="frame-slider" min="100" max="300" value="${frameState['img'+i].zoom*100}" oninput="updateFrame('img${i}', 'zoom', this.value)">
+                      </div>
+                      <div class="flex flex-col items-center">
+                        <label class="text-[9px] text-slate-400 font-bold mb-1">PAN ↔</label>
+                        <input type="range" id="slider_panx_img${i}" class="frame-slider" min="-100" max="100" value="${frameState['img'+i].panX}" oninput="updateFrame('img${i}', 'x', this.value)">
+                      </div>
+                      <div class="flex flex-col items-center">
+                        <label class="text-[9px] text-slate-400 font-bold mb-1">PAN ↕</label>
+                        <input type="range" id="slider_pany_img${i}" class="frame-slider" min="-100" max="100" value="${frameState['img'+i].panY}" oninput="updateFrame('img${i}', 'y', this.value)">
+                      </div>
+                    </div>
+                    <label class="flex items-center gap-2 mt-3 cursor-pointer justify-center">
+                        <input type="checkbox" ${isChecked} onchange="toggleWatermark('img${i}', this.checked)" class="accent-blue-500 w-4 h-4 rounded">
+                        <span class="text-[10px] font-bold text-slate-300">Mostrar M. Agua en Panel ${i}</span>
+                    </label>
+                </div>`;
+            }
+        }
+        container.innerHTML = htmlStr;
+        setupPointerEvents();
+    }
+
+    function setupPointerEvents() {
+        document.querySelectorAll('.frame-viewport').forEach(vp => {
+           let imgId = vp.querySelector('.frame-image').id;
+           let isDown = false, hasMoved = false, startX, startY, origPanX, origPanY;
+           let lastTap = 0;
+
+           vp.onpointerdown = e => {
+               isDown = true; hasMoved = false;
+               startX = e.clientX; startY = e.clientY;
+               origPanX = frameState[imgId].panX; origPanY = frameState[imgId].panY;
+               vp.setPointerCapture(e.pointerId);
+           };
+
+           vp.onpointermove = e => {
+               if(!isDown) return;
+               let dx = e.clientX - startX, dy = e.clientY - startY;
+               if(Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
+               
+               if(hasMoved) {
+                   const state = frameState[imgId];
+                   const totalScale = state.baseScale * state.zoom;
+                   const maxPanX = Math.max(0, (state.initW * totalScale - vp.clientWidth) / 2);
+                   const maxPanY = Math.max(0, (state.initH * totalScale - vp.clientHeight) / 2);
+
+                   let deltaPanX = maxPanX > 0 ? (dx * totalScale / maxPanX) * 100 : 0;
+                   let deltaPanY = maxPanY > 0 ? (dy * totalScale / maxPanY) * 100 : 0;
+
+                   state.panX = Math.max(-100, Math.min(100, origPanX + deltaPanX));
+                   state.panY = Math.max(-100, Math.min(100, origPanY + deltaPanY));
+                   
+                   const num = imgId.replace('img','');
+                   const sliderX = document.getElementById(`slider_panx_img${num}`);
+                   const sliderY = document.getElementById(`slider_pany_img${num}`);
+                   if(sliderX) sliderX.value = state.panX;
+                   if(sliderY) sliderY.value = state.panY;
+                   
+                   applyFrameVisuals(imgId);
+               }
+           };
+
+           vp.onpointerup = e => {
+               isDown = false; vp.releasePointerCapture(e.pointerId);
+               if(!hasMoved) {
+                   const currentTime = new Date().getTime();
+                   if (currentTime - lastTap < 300 && currentTime - lastTap > 0) {
+                       const num = imgId.replace('img','');
+                       const inputEl = document.getElementById('fileUpload_'+num);
+                       if(inputEl) inputEl.click();
+                       e.preventDefault();
+                   }
+                   lastTap = currentTime;
+               }
+           };
+
+           vp.onwheel = e => {
+               e.preventDefault();
+               frameState[imgId].zoom = Math.max(1, Math.min(3, frameState[imgId].zoom + (e.deltaY < 0 ? 0.05 : -0.05)));
+               const sliderZ = document.getElementById(`slider_zoom_img${imgId.replace('img','')}`);
+               if(sliderZ) sliderZ.value = frameState[imgId].zoom * 100;
+               applyFrameVisuals(imgId);
+           };
+        });
+    }
+
+    window.toggleWatermark = function(imgId, isChecked) {
+        frameState[imgId].wmk = isChecked;
+        const wmk = document.getElementById('wmk_' + imgId);
+        if(wmk) {
+            if(isChecked) { wmk.classList.remove('hidden'); wmk.classList.add('block'); } 
+            else { wmk.classList.remove('block'); wmk.classList.add('hidden'); }
+        }
+    };
+
+    window.handlePropImageUpload = function(event, targetId) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const isVideo = file.type.startsWith('video/');
+        const objectUrl = URL.createObjectURL(file);
+        const num = targetId.replace('img', '');
+        const imgEl = document.getElementById(targetId);
+        const vidEl = document.getElementById('vid' + num);
+
+        frameState[targetId].isVideo = isVideo;
+
+        if (isVideo) {
+            imgEl.classList.add('hidden');
+            vidEl.classList.remove('hidden');
+            vidEl.src = objectUrl;
+            vidEl.load(); vidEl.play(); 
+        } else {
+            vidEl.classList.add('hidden');
+            imgEl.classList.remove('hidden');
+            imgEl.src = objectUrl;
+        }
+
+        imageDataMap[targetId] = objectUrl;
+        frameState[targetId].zoom = 1; frameState[targetId].panX = 0; frameState[targetId].panY = 0;
+        
+        const elZoom = document.getElementById(`slider_zoom_img${num}`);
+        const elPx = document.getElementById(`slider_panx_img${num}`);
+        const elPy = document.getElementById(`slider_pany_img${num}`);
+        if(elZoom) elZoom.value = 100; if(elPx) elPx.value = 0; if(elPy) elPy.value = 0;
+
+        if (!isVideo) {
+            imgEl.onload = () => initFrame(targetId);
+        } else {
+            vidEl.onloadedmetadata = () => initFrame(targetId);
+        }
+    };
+
+    window.handleBrandUpload = function(event, targetId) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById(targetId).src = e.target.result;
+            if(targetId !== 'imgWatermarkMaster') imageDataMap[targetId] = e.target.result; 
+            else { for(let i=1; i<=4; i++) { const w = document.getElementById('wmk_img'+i); if(w) w.src = e.target.result; } }
+            try { localStorage.setItem('mcs_' + targetId, e.target.result); } catch (err) {}
+        };
+        reader.readAsDataURL(file);
+    };
+
+    window.updateLayoutGrid = function(val) {
+        currentLayout = parseInt(val, 10);
+        document.getElementById('previewLayout').value = val;
+
+        const grid = document.getElementById('photoGrid');
+        grid.className = `grid-layout-${currentLayout}`;
+        
+        document.getElementById('container_img1').classList.remove('hero-img');
+        
+        if (currentLayout === 1) {
+            document.getElementById('container_img2').classList.add('hidden'); document.getElementById('container_img3').classList.add('hidden'); document.getElementById('container_img4').classList.add('hidden');
+        } else if (currentLayout === 2) {
+            document.getElementById('container_img2').classList.remove('hidden'); document.getElementById('container_img3').classList.add('hidden'); document.getElementById('container_img4').classList.add('hidden');
+        } else if (currentLayout === 3) {
+            document.getElementById('container_img1').classList.add('hero-img');
+            document.getElementById('container_img2').classList.remove('hidden'); document.getElementById('container_img3').classList.remove('hidden'); document.getElementById('container_img4').classList.add('hidden');
+        } else {
+            document.getElementById('container_img2').classList.remove('hidden'); document.getElementById('container_img3').classList.remove('hidden'); document.getElementById('container_img4').classList.remove('hidden');
+        }
+        updateDesignConfig(); buildControls();
+        setTimeout(() => { for(let i=1; i<=currentLayout; i++) initFrame('img'+i); }, 150);
+    };
+
+    window.initFrame = function(imgId) {
+      const state = frameState[imgId];
+      const mediaEl = state.isVideo ? document.getElementById('vid' + imgId.replace('img', '')) : document.getElementById(imgId);
+      const viewport = document.getElementById(`viewport_${imgId}`);
+      
+      if (!mediaEl || !viewport) return;
+
+      const w = state.isVideo ? mediaEl.videoWidth : mediaEl.naturalWidth;
+      const h = state.isVideo ? mediaEl.videoHeight : mediaEl.naturalHeight;
+      if (w === 0 || h === 0) return;
+
+      const baseScale = Math.max(viewport.clientWidth / w, viewport.clientHeight / h);
+      state.baseScale = baseScale; state.initW = w; state.initH = h;
+      
+      mediaEl.style.width = w + 'px'; mediaEl.style.height = h + 'px';
+      mediaEl.style.maxWidth = 'none'; mediaEl.style.maxHeight = 'none';
+      applyFrameVisuals(imgId);
+    };
+
+    function applyFrameVisuals(imgId) {
+        const state = frameState[imgId];
+        const mediaEl = state.isVideo ? document.getElementById('vid' + imgId.replace('img', '')) : document.getElementById(imgId);
+        const viewport = document.getElementById(`viewport_${imgId}`);
+        if (!mediaEl || !viewport) return;
+        
+        const totalScale = state.baseScale * state.zoom;
+        const maxPanX = Math.max(0, (state.initW * totalScale - viewport.clientWidth) / 2);
+        const maxPanY = Math.max(0, (state.initH * totalScale - viewport.clientHeight) / 2);
+        
+        const pxOffsetX = (-(state.panX / 100) * maxPanX) / totalScale;
+        const pxOffsetY = (-(state.panY / 100) * maxPanY) / totalScale;
+        mediaEl.style.transform = `scale(${totalScale}) translate(${pxOffsetX}px, ${pxOffsetY}px)`;
+    }
+
+    window.handlePriceInput = function(e) {
+        let rawVal = e.target.value.replace(/\D/g, ''); 
+        if (rawVal === '') e.target.value = '';
+        else e.target.value = parseInt(rawVal, 10).toLocaleString('es-AR');
+        updateLivePreview();
+    };
+
+    window.updateLivePreview = function() {
+      document.getElementById('displayTitle').innerText = document.getElementById('inputTitle').value.toUpperCase();
+      const priceStr = document.getElementById('inputPrice').value;
+      const priceNum = parseInt(priceStr.replace(/\D/g, ''), 10);
+      document.getElementById('displayPrice').innerText = (isNaN(priceNum) || priceNum === 0) ? "CONSULTAR" : 'U$D ' + priceStr;
+
+      const bWrap = document.getElementById('unified-badges-wrapper');
+      bWrap.innerHTML = '';
+      
+      const t1 = document.getElementById('inputBadgeText').value.toUpperCase().trim();
+      const t2 = document.getElementById('inputZona').value.toUpperCase().trim();
+      const t3 = document.getElementById('inputTagline').value.toUpperCase().trim();
+      
+      const c1 = document.getElementById('cfgTextCol1').value;
+      const c2 = document.getElementById('cfgTextCol2').value;
+      const c3 = document.getElementById('cfgTextCol3').value;
+      const textOp = document.getElementById('cfgTextsOpacity').value / 100;
+
+      const activeTexts = [];
+      if(t1) activeTexts.push({text: t1, color: c1});
+      if(t2) activeTexts.push({text: t2, color: c2});
+      if(t3) activeTexts.push({text: t3, color: c3});
+
+      const isBold = document.getElementById('cfgTextBold').checked;
+      const isUnderline = document.getElementById('cfgTextUnderline').checked;
+      const isFluo = document.getElementById('cfgFluoTexts').checked;
+
+      if (activeTexts.length === 0) bWrap.style.display = 'none';
+      else {
+          bWrap.style.display = 'flex';
+          activeTexts.forEach((item) => {
+              const span = document.createElement('span');
+              span.textContent = item.text;
+              const rgbaColor = `rgba(${hexToRgb(item.color)}, ${textOp})`;
+              span.style.color = rgbaColor;
+              span.style.fontWeight = isBold ? '900' : '500';
+              span.style.textDecoration = isUnderline ? 'underline' : 'none';
+              span.style.textShadow = isFluo ? `0 0 10px ${rgbaColor}` : `1px 1px 3px rgba(0,0,0,0.85)`;
+              span.className = "tracking-wide whitespace-nowrap overflow-hidden text-ellipsis";
+              span.style.fontSize = (1.85 * textsScale) + 'cqi';
+              bWrap.appendChild(span);
+          });
+      }
+
+      const phoneInput = document.getElementById('inputPhone');
+      if(phoneInput) document.getElementById('displayPhone').innerText = phoneInput.value;
+      
+      const rawFeatures = document.getElementById('inputFeatures').value;
+      const overBox = document.getElementById('overlay-features');
+      const overList = document.getElementById('overlay-features-list');
+      overList.innerHTML = '';
+      
+      const featureLines = rawFeatures.split('\n').map(l => l.trim()).filter(l => l !== '');
+      if (featureLines.length === 0) overBox.style.display = 'none';
+      else {
+          overBox.style.display = 'flex';
+          const bulletType = document.getElementById('cfgBulletType').value;
+          const overBgHex = document.getElementById('cfgOverlayBg').value;
+          const autoBulletColor = getContrastYIQ(overBgHex);
+
+          featureLines.forEach(line => {
+              const li = document.createElement('li');
+              li.className = "flex items-start gap-2 relative z-10";
+              const bSpan = document.createElement('span'); bSpan.textContent = bulletType; bSpan.style.color = autoBulletColor;
+              const tSpan = document.createElement('span'); tSpan.textContent = line;
+              li.appendChild(bSpan); li.appendChild(tSpan);
+              overList.appendChild(li);
+          });
+      }
+
+      updateDesignConfig();
+    };
+
+    window.updatePlatform = function(val) {
+      currentPlatform = val;
+      document.getElementById('previewPlatform').value = val;
+
+      const captureArea = document.getElementById('captureArea');
+      const btnWhatsapp = document.getElementById('whatsapp-button-container');
+
+      btnWhatsapp.style.display = 'flex';
+      if (val === 'whatsapp') {
+        captureArea.className = 'story-aspect-ratio bg-slate-900 rounded-2xl shadow-2xl flex flex-col relative overflow-hidden mx-auto';
+        btnWhatsapp.style.display = 'none';
+      } else if (val === 'instagram_feed') {
+        captureArea.className = 'feed-aspect-ratio bg-slate-900 rounded-2xl shadow-2xl flex flex-col relative overflow-hidden border-institutional mx-auto';
+      } else if (val === 'instagram_square') {
+        captureArea.className = 'square-aspect-ratio bg-slate-900 rounded-2xl shadow-2xl flex flex-col relative overflow-hidden border-institutional mx-auto';
+      } else {
+        captureArea.className = 'story-aspect-ratio bg-slate-900 rounded-2xl shadow-2xl flex flex-col relative overflow-hidden border-institutional mx-auto';
+      }
+      setTimeout(() => { for(let i=1; i<=currentLayout; i++) initFrame('img'+i); }, 350);
+    };
+
+    window.isRecording = false;
+
+    window.exportToCanvas = async function() {
+      if (window.isRecording) return; 
+      
+      try {
+          const canvas = document.getElementById('exportCanvas');
+          const ctx = canvas.getContext('2d');
+          const isFeed = currentPlatform === 'instagram_feed';
+          const isSquare = currentPlatform === 'instagram_square';
+          const isWhatsapp = currentPlatform === 'whatsapp';
+          
+          canvas.width = 1080;
+          canvas.height = isSquare ? 1080 : (isFeed ? 1350 : 1920); 
+          const w = canvas.width, h = canvas.height;
+          const hFooter = Math.round(h * (isSquare ? 0.22 : 0.18)); 
+          const photoAreaH = h - hFooter;
+          const footerY = photoAreaH;
+          const domGap = parseInt(document.getElementById('cfgGapWidth').value, 10);
+          const gap = domGap * (isSquare ? 1.5 : 2.5); 
+          const fFont = document.getElementById('cfgFontFamily').value;
+          
+          let hasVideo = false;
+          let activeVideos = [];
+          for(let i=1; i<=currentLayout; i++) {
+              if (frameState['img'+i].isVideo) {
+                  hasVideo = true;
+                  activeVideos.push(document.getElementById('vid'+i));
+              }
+          }
+
+          function drawImageCustomFrame(ctx, imgId, destX, destY, destW, destH) {
+              const state = frameState[imgId];
+              const num = imgId.replace('img', '');
+              const mediaEl = state.isVideo ? document.getElementById('vid' + num) : document.getElementById(imgId);
+
+              const srcW = state.isVideo ? mediaEl.videoWidth : mediaEl.naturalWidth;
+              const srcH = state.isVideo ? mediaEl.videoHeight : mediaEl.naturalHeight;
+
+              if (!mediaEl || srcW === 0 || (!state.isVideo && mediaEl.src.includes('data:image/svg+xml'))) { 
+                  ctx.fillStyle = '#1e293b'; ctx.fillRect(destX, destY, destW, destH); 
+                  ctx.fillStyle = '#475569'; ctx.font = 'bold 30px sans-serif';
+                  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                  ctx.fillText(state.isVideo ? "VIDEO" : "FOTO", destX + destW/2, destY + destH/2);
+                  return; 
+              }
+              
+              const baseScaleCanvas = Math.max(destW / srcW, destH / srcH);
+              const totalScaleCanvas = baseScaleCanvas * state.zoom;
+              const sW = srcW * totalScaleCanvas;
+              const sH = srcH * totalScaleCanvas;
+              
+              const pxOffsetXCanvas = (-(state.panX / 100) * Math.max(0, (sW - destW) / 2));
+              const pxOffsetYCanvas = (-(state.panY / 100) * Math.max(0, (sH - destH) / 2));
+              
+              ctx.save(); ctx.beginPath(); ctx.rect(destX, destY, destW, destH); ctx.clip();
+              ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+              
+              ctx.drawImage(mediaEl, destX + ((destW - sW) / 2) + pxOffsetXCanvas, destY + ((destH - sH) / 2) + pxOffsetYCanvas, sW, sH);
+              
+              const wmkMaster = document.getElementById('imgWatermarkMaster');
+              const wmkOpacity = document.getElementById('inputWatermark').value / 100;
+              if (state.wmk && wmkOpacity > 0 && wmkMaster.complete && wmkMaster.naturalWidth > 0) {
+                 ctx.globalAlpha = wmkOpacity; ctx.filter = 'grayscale(100%)';
+                 let scale = imgId === 'img1' ? 0.4 : 0.6; 
+                 let wW = destW * scale; let wH = (wmkMaster.naturalHeight / wmkMaster.naturalWidth) * wW;
+                 ctx.drawImage(wmkMaster, destX + (destW - wW)/2, destY + (destH - wH)/2, wW, wH);
+                 ctx.filter = 'none'; ctx.globalAlpha = 1.0;
+              }
+              ctx.restore();
+          }
+
+          function renderSnapshot() {
+              ctx.fillStyle = '#0f172a';
+              ctx.fillRect(0, 0, w, h);
+
+              if (gap > 0) {
+                  const isGapGrad = document.getElementById('cfgGradientGap').checked;
+                  const gc1 = document.getElementById('cfgGapColor1').value;
+                  if (isGapGrad) {
+                      const gradGap = ctx.createLinearGradient(0, 0, w, photoAreaH);
+                      gradGap.addColorStop(0, gc1); gradGap.addColorStop(0.5, document.getElementById('cfgGapColor2').value); gradGap.addColorStop(1, document.getElementById('cfgGapColor3').value);
+                      ctx.fillStyle = gradGap;
+                  } else { ctx.fillStyle = gc1; }
+                  ctx.fillRect(0, 0, w, photoAreaH);
+              } else {
+                  ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, w, photoAreaH);
+              }
+
+              let midY = 0; let panelCoords = [];
+              if (currentLayout === 1) panelCoords = [{x:0, y:0, w: w, h: photoAreaH}];
+              else if (currentLayout === 2) {
+                  midY = photoAreaH / 2;
+                  panelCoords = [ {x:0, y:0, w: w, h: midY - gap/2}, {x:0, y:midY + gap/2, w: w, h: midY - gap/2} ];
+              } else if (currentLayout === 3) {
+                  midY = photoAreaH * 0.55;
+                  panelCoords = [ {x:0, y:0, w: w, h: midY - gap/2}, {x:0, y:midY + gap/2, w: w/2 - gap/2, h: photoAreaH - midY - gap/2}, {x:w/2 + gap/2, y:midY + gap/2, w: w/2 - gap/2, h: photoAreaH - midY - gap/2} ];
+              } else if (currentLayout === 4) {
+                  midY = photoAreaH / 2;
+                  panelCoords = [ {x:0, y:0, w: w/2 - gap/2, h: midY - gap/2}, {x:w/2 + gap/2, y:0, w: w/2 - gap/2, h: midY - gap/2}, {x:0, y:midY + gap/2, w: w/2 - gap/2, h: midY - gap/2}, {x:w/2 + gap/2, y:midY + gap/2, w: w/2 - gap/2, h: midY - gap/2} ];
+              }
+
+              panelCoords.forEach((rect, idx) => drawImageCustomFrame(ctx, 'img' + (idx+1), rect.x, rect.y, rect.w, rect.h));
+
+              const gradTop = ctx.createLinearGradient(0, 0, 0, photoAreaH * 0.4);
+              gradTop.addColorStop(0, 'rgba(0,0,0,0.7)'); gradTop.addColorStop(1, 'rgba(0,0,0,0)');
+              ctx.fillStyle = gradTop; ctx.fillRect(0, 0, w, photoAreaH * 0.4);
+
+              const bPosGlobal = document.getElementById('cfgBadgePos').value;
+              const rawFeatures = document.getElementById('inputFeatures').value;
+              const featureLines = rawFeatures.split('\n').map(l => l.trim()).filter(l => l !== '');
+              
+              if (featureLines.length > 0) {
+                  let overlayPos = document.getElementById('cfgOverlayPos').value;
+                  if (overlayPos.startsWith('P') && parseInt(overlayPos.charAt(1), 10) > currentLayout) overlayPos = 'CC';
+
+                  const overBgHex = document.getElementById('cfgOverlayBg').value;
+                  const overOp = document.getElementById('cfgOverlayOpacity').value / 100;
+                  const overTextCol = document.getElementById('cfgOverlayText').value;
+                  const bulletType = document.getElementById('cfgBulletType').value;
+                  const autoBulletColor = getContrastYIQ(overBgHex);
+
+                  let overX = 0, overY = 0, overW = 0, overH = 0;
+                  let scaleOver = 1; let isPanel = overlayPos.startsWith('P');
+
+                  if (isPanel) {
+                      const pIdx = parseInt(overlayPos.charAt(1), 10) - 1;
+                      const rect = panelCoords[pIdx];
+                      overX = rect.x; overY = rect.y; overW = rect.w; overH = rect.h;
+                  } else {
+                      ctx.font = `600 18px ${fFont}`;
+                      let maxTextWidth = 0;
+                      featureLines.forEach(l => { let lw = ctx.measureText(`${bulletType}  ${l}`).width; if (lw > maxTextWidth) maxTextWidth = lw; });
+                      const overPadX = 20, overPadY = 16, lineHeight = 26;
+                      const baseOverW = maxTextWidth + (overPadX * 2), baseOverH = (featureLines.length * lineHeight) + (overPadY * 2) - 8;
+                      let maxOverW = w * 0.8, maxOverH = photoAreaH * 0.45; 
+                      
+                      if (baseOverW > maxOverW) scaleOver = maxOverW / baseOverW;
+                      if (baseOverH * scaleOver > maxOverH) scaleOver = maxOverH / baseOverH;
+                      overW = baseOverW * scaleOver; overH = baseOverH * scaleOver;
+
+                      let startYTop = bPosGlobal.startsWith('T') ? 220 : 60;
+                      let botY = bPosGlobal.startsWith('T') ? (photoAreaH - overH - 60) : (photoAreaH - overH - 240);
+
+                      if (overlayPos === 'TL') { overX = 40; overY = startYTop; }
+                      else if (overlayPos === 'TC') { overX = w/2 - overW/2; overY = startYTop; }
+                      else if (overlayPos === 'TR') { overX = w - overW - 40; overY = startYTop; }
+                      else if (overlayPos === 'BL') { overX = 40; overY = botY; }
+                      else if (overlayPos === 'BC') { overX = w/2 - overW/2; overY = botY; }
+                      else if (overlayPos === 'BR') { overX = w - overW - 40; overY = botY; }
+                      else if (overlayPos === 'CC') { overX = w/2 - overW/2; overY = photoAreaH/2 - overH/2; }
+                  }
+
+                  ctx.save(); ctx.beginPath(); ctx.roundRect(overX, overY, overW, overH, isPanel ? 0 : (12 * scaleOver)); 
+                  ctx.fillStyle = `rgba(${hexToRgb(overBgHex)}, ${overOp})`; ctx.fill();
+                  ctx.translate(overX, overY); ctx.scale(scaleOver, scaleOver);
+                  ctx.textAlign = isPanel ? 'center' : 'left'; ctx.textBaseline = 'middle';
+
+                  const internalLineH = isPanel ? 32 : 26;
+                  ctx.font = `600 ${isPanel ? '22px' : '18px'} ${fFont}`;
+                  let currentTextY = isPanel ? (overH/2 - ((featureLines.length * internalLineH) / 2) + (internalLineH/2)) : 16 + (internalLineH/2);
+                  
+                  featureLines.forEach(line => {
+                      let textDrawX = isPanel ? (overW/2) : 20;
+                      if (isPanel) {
+                          let tWidth = ctx.measureText(`${bulletType}  ${line}`).width;
+                          ctx.fillStyle = autoBulletColor; ctx.fillText(bulletType, textDrawX - tWidth/2, currentTextY);
+                          ctx.fillStyle = overTextCol; ctx.fillText(line, textDrawX - tWidth/2 + 26, currentTextY);
+                      } else {
+                          ctx.fillStyle = autoBulletColor; ctx.fillText(bulletType, textDrawX, currentTextY);
+                          ctx.fillStyle = overTextCol; ctx.fillText(line, textDrawX + 22, currentTextY);
+                      }
+                      currentTextY += internalLineH;
+                  });
+                  ctx.restore();
+              }
+
+              const showPriceBox = document.getElementById('cfgShowPriceBox').checked;
+              const pos = document.getElementById('cfgPricePos').value;
+
+              if (showPriceBox) {
+                  let pX = 0, pY = 0;
+                  const isNarrow = ['CR','CL','BR','BL'].includes(pos);
+                  
+                  const priceFont = document.getElementById('cfgPriceFont').value || fFont;
+                  const titleScaleCanvas = parseInt(document.getElementById('cfgTitleSize').value, 10) / 100;
+                  const priceScaleCanvas = parseInt(document.getElementById('cfgPriceSize').value, 10) / 100;
+
+                  let plateW = (isNarrow ? 500 : 750) * priceBoxScale * priceBoxWidthMult;
+                  let plateH = 105 * priceBoxScale * priceBoxHeightMult; 
+
+                  if (pos === 'TC') { pX = w/2 - plateW/2; pY = 60; } 
+                  else if (pos === 'TL') { pX = 40; pY = 60; } 
+                  else if (pos === 'TR') { pX = w - plateW - 40; pY = 60; } 
+                  else if (pos === 'CC') { pX = w/2 - plateW/2; pY = photoAreaH/2 - plateH/2; } 
+                  else if (pos === 'CR') { pX = w - plateW - 40; pY = photoAreaH/2 - plateH/2; } 
+                  else if (pos === 'CL') { pX = 40; pY = photoAreaH/2 - plateH/2; } 
+                  else if (pos === 'BC') { pX = w/2 - plateW/2; pY = photoAreaH - plateH - 40; } 
+                  else if (pos === 'BR') { pX = w - plateW - 40; pY = photoAreaH - plateH - 40; } 
+                  else if (pos === 'BL') { pX = 40; pY = photoAreaH - plateH - 40; }
+
+                  pX += (priceOffsetX / 100) * w; pY += (priceOffsetY / 100) * w;
+
+                  const hexBg = document.getElementById('cfgPriceBg').value;
+                  const borderPriceC = document.getElementById('cfgPriceBorderColor').value;
+                  const isFluoPrice = document.getElementById('cfgFluoPrice').checked;
+                  const opc = document.getElementById('cfgPriceOpacity').value / 100;
+                  const pBorderW = parseInt(document.getElementById('cfgPriceBorderWidth').value, 10) * priceBoxScale;
+                  const pRad = parseInt(document.getElementById('cfgPriceRadius').value, 10) * priceBoxScale;
+                  
+                  ctx.fillStyle = `rgba(${hexToRgb(hexBg)}, ${opc})`; 
+                  if (isFluoPrice) { ctx.shadowColor = hexBg; ctx.shadowBlur = 20; }
+                  ctx.beginPath(); ctx.roundRect(pX, pY, plateW, plateH, pRad); ctx.fill();
+                  ctx.shadowBlur = 0; 
+                  
+                  if (pBorderW > 0) { ctx.strokeStyle = borderPriceC; ctx.lineWidth = pBorderW; ctx.stroke(); }
+                  
+                  const centerY = pY + (plateH / 2);
+                  ctx.fillStyle = '#ffffff'; 
+                  ctx.font = `900 ${Math.round((isNarrow ? 24 : 32) * priceBoxScale * titleScaleCanvas)}px ${priceFont}`; 
+                  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                  
+                  const titleText = document.getElementById('inputTitle').value.toUpperCase();
+                  let drawTitle = titleText;
+                  if (ctx.measureText(drawTitle).width > plateW - 20) {
+                      while(ctx.measureText(drawTitle + '...').width > plateW - 20 && drawTitle.length > 0) { drawTitle = drawTitle.slice(0, -1); }
+                      drawTitle += '...';
+                  }
+                  
+                  ctx.fillText(drawTitle, pX + plateW/2, centerY - (12 * priceBoxScale));
+                  ctx.fillStyle = '#fbbf24'; 
+                  ctx.fillRect(pX + plateW/2 - (60 * priceBoxScale), centerY + (2 * priceBoxScale), (120 * priceBoxScale), (4 * priceBoxScale)); 
+                  
+                  const priceStr = document.getElementById('inputPrice').value;
+                  const priceNum = parseInt(priceStr.replace(/\D/g, ''), 10);
+                  if (isNaN(priceNum) || priceNum === 0) {
+                      ctx.fillStyle = '#fcd34d'; ctx.font = `900 ${Math.round((isNarrow ? 24 : 32) * priceBoxScale * priceScaleCanvas)}px ${priceFont}`; 
+                      ctx.fillText('CONSULTAR', pX + plateW/2, centerY + (24 * priceBoxScale));
+                  } else {
+                      ctx.fillStyle = '#fcd34d'; ctx.font = `900 ${Math.round((isNarrow ? 36 : 48) * priceBoxScale * priceScaleCanvas)}px ${priceFont}`; 
+                      ctx.fillText('U$D ' + priceStr, pX + plateW/2, centerY + (24 * priceBoxScale));
+                  }
+                  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+              }
+
+              const t1 = document.getElementById('inputBadgeText').value.toUpperCase().trim();
+              const t2 = document.getElementById('inputZona').value.toUpperCase().trim();
+              const t3 = document.getElementById('inputTagline').value.toUpperCase().trim();
+              
+              const activeTexts = [];
+              if(t1) activeTexts.push({text: t1, color: document.getElementById('cfgTextCol1').value});
+              if(t2) activeTexts.push({text: t2, color: document.getElementById('cfgTextCol2').value});
+              if(t3) activeTexts.push({text: t3, color: document.getElementById('cfgTextCol3').value});
+
+              if (activeTexts.length > 0) {
+                  const textOp = document.getElementById('cfgTextsOpacity').value / 100;
+                  const isBold = document.getElementById('cfgTextBold').checked;
+                  const isUnderline = document.getElementById('cfgTextUnderline').checked;
+                  const isFluo = document.getElementById('cfgFluoTexts').checked;
+                  
+                  ctx.font = `${isBold ? '900' : '500'} 20px ${fFont}`;
+                  ctx.textBaseline = 'alphabetic';
+                  
+                  let lineH = 32, boxW = 0, boxH = 0;
+                  const isInline = (bPosGlobal === 'TC' || bPosGlobal === 'BC');
+                  let gapW = 15; 
+
+                  if (isInline) {
+                      let totalTextW = 0;
+                      activeTexts.forEach((b, i) => {
+                          b.w = ctx.measureText(b.text).width;
+                          totalTextW += b.w;
+                          if (i < activeTexts.length - 1) totalTextW += gapW;
+                      });
+                      boxW = totalTextW; boxH = lineH;
+                  } else {
+                      let maxW = 0;
+                      activeTexts.forEach(b => { b.w = ctx.measureText(b.text).width; if (b.w > maxW) maxW = b.w; });
+                      boxW = maxW; boxH = (activeTexts.length * lineH);
+                  }
+
+                  let maxBoxW = w - 80; 
+                  let scale = textsScale; if (boxW * scale > maxBoxW) scale = maxBoxW / boxW; 
+
+                  let drawW = boxW * scale, drawH = boxH * scale;
+                  let boxX = 0, boxY = 0;
+                  if (bPosGlobal === 'TC') { boxX = w/2 - drawW/2; boxY = 60; }
+                  else if (bPosGlobal === 'TL') { boxX = 40; boxY = 60; }
+                  else if (bPosGlobal === 'TR') { boxX = w - drawW - 40; boxY = 60; }
+                  else if (bPosGlobal === 'CL') { boxX = 40; boxY = photoAreaH/2 - drawH/2; }
+                  else if (bPosGlobal === 'CR') { boxX = w - drawW - 40; boxY = photoAreaH/2 - drawH/2; }
+                  else if (bPosGlobal === 'BC') { boxX = w/2 - drawW/2; boxY = photoAreaH - drawH - 40; }
+                  else if (bPosGlobal === 'BL') { boxX = 40; boxY = photoAreaH - drawH - 40; }
+                  else if (bPosGlobal === 'BR') { boxX = w - drawW - 40; boxY = photoAreaH - drawH - 40; }
+
+                  boxX += (textsOffsetX / 100) * w; boxY += (textsOffsetY / 100) * w;
+
+                  ctx.save(); ctx.translate(boxX, boxY); ctx.scale(scale, scale);
+
+                  if (isInline) {
+                      ctx.textAlign = 'left'; let currX = 0;
+                      activeTexts.forEach((b, i) => {
+                          const rgbaColor = `rgba(${hexToRgb(b.color)}, ${textOp})`;
+                          if (isFluo) { ctx.shadowColor = rgbaColor; ctx.shadowBlur = 15; } 
+                          else { ctx.shadowColor = 'rgba(0,0,0,0.85)'; ctx.shadowBlur = 5; ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1; }
+
+                          ctx.fillStyle = rgbaColor; ctx.fillText(b.text, currX, lineH - 4);
+                          ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+                          
+                          if (isUnderline) ctx.fillRect(currX, lineH + 2, b.w, 2);
+                          currX += b.w; if (i < activeTexts.length - 1) currX += gapW; 
+                      });
+                  } else {
+                      let isRight = bPosGlobal.endsWith('R');
+                      ctx.textAlign = isRight ? 'right' : 'left';
+                      let currY = lineH - 4; let drawX = isRight ? boxW : 0;
+                      
+                      activeTexts.forEach(b => {
+                          const rgbaColor = `rgba(${hexToRgb(b.color)}, ${textOp})`;
+                          if (isFluo) { ctx.shadowColor = rgbaColor; ctx.shadowBlur = 15; } 
+                          else { ctx.shadowColor = 'rgba(0,0,0,0.85)'; ctx.shadowBlur = 5; ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1; }
+
+                          ctx.fillStyle = rgbaColor; ctx.fillText(b.text, drawX, currY);
+                          ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+                          if (isUnderline) { let uX = isRight ? (boxW - b.w) : 0; ctx.fillRect(uX, currY + 6, b.w, 2); }
+                          currY += lineH;
+                      });
+                  }
+                  ctx.restore();
+              }
+
+              const b1 = document.getElementById('cfgBorderColor1').value;
+              const topHalfY = footerY + (hFooter * 0.35), bottomHalfY = footerY + (hFooter * 0.75);
+
+              ctx.fillStyle = document.getElementById('cfgColorFooterBg').value; ctx.fillRect(0, footerY, w, hFooter);
+
+              const agentSize = isSquare ? 90 : 110;
+              const agentY = topHalfY - (agentSize/2);
+              let baseAgentX = 50, baseLogoX = w - 240 - 45; 
+
+              ctx.save(); ctx.beginPath(); ctx.arc(baseAgentX + agentSize/2, agentY + agentSize/2, agentSize/2, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
+              ctx.fillStyle = document.getElementById('cfgColorFooterBg').value; ctx.fill();
+              const imgA = document.getElementById('imgAgent');
+              if (imgA.complete && imgA.naturalWidth > 0 && imgA.src.indexOf('PHBhdGggZD') === -1) {
+                const scaleA = Math.max(agentSize / imgA.naturalWidth, agentSize / imgA.naturalHeight);
+                ctx.drawImage(imgA, baseAgentX + (agentSize - imgA.naturalWidth * scaleA)/2, agentY + (agentSize - imgA.naturalHeight * scaleA)/2, imgA.naturalWidth * scaleA, imgA.naturalHeight * scaleA);
+              }
+              ctx.restore();
+              ctx.strokeStyle = b1; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(baseAgentX + agentSize/2, agentY + agentSize/2, agentSize/2, 0, Math.PI * 2); ctx.stroke();
+
+              ctx.fillStyle = document.getElementById('cfgColorFooterText').value; 
+              ctx.textBaseline = 'middle';
+              ctx.font = `800 ${isSquare ? '18px' : '22px'} ${fFont}`; ctx.fillText('MAURO CESAR SCARFATTI', baseAgentX + agentSize + 20, topHalfY - 10);
+              ctx.font = `600 ${isSquare ? '14px' : '16px'} ${fFont}`; ctx.globalAlpha = 0.8; ctx.fillText('COMADO Tomo III Folio 841 N° 1497', baseAgentX + agentSize + 20, topHalfY + 15); ctx.globalAlpha = 1.0;
+
+              const imgL = document.getElementById('imgLogo');
+              if (imgL.complete && imgL.naturalWidth > 0 && imgL.src.indexOf('iVBORw0KGgo') === -1) {
+                let lw = 240, lh = (imgL.naturalHeight / imgL.naturalWidth) * lw;
+                if(lh > 80) { lh = 80; lw = (imgL.naturalWidth / imgL.naturalHeight) * lh; }
+                ctx.drawImage(imgL, baseLogoX, topHalfY - (lh/2), lw, lh);
+              }
+
+              if (!isWhatsapp) {
+                  const wpPhone = document.getElementById('inputPhone').value;
+                  ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.roundRect(w/2 - 300, bottomHalfY - 23.75, 600, 47.5, 23.75); ctx.fill();
+                  ctx.fillStyle = '#ffffff'; ctx.font = `bold 24px ${fFont}`; ctx.textAlign = 'center'; ctx.fillText(wpPhone, w/2 + 20, bottomHalfY); 
+                  try {
+                      const imgWp = document.getElementById('imgWhatsappHidden');
+                      if (imgWp.complete && imgWp.naturalWidth > 0) {
+                          const textW = ctx.measureText(wpPhone).width;
+                          ctx.drawImage(imgWp, w/2 - (textW/2) - 40, bottomHalfY - 12, 24, 24); 
+                      }
+                  } catch (e) {}
+              }
+
+              if (!isWhatsapp) {
+                  const isGrad = document.getElementById('cfgGradientBorder').checked;
+                  if (isGrad) {
+                      const gradBorder = ctx.createLinearGradient(0, 0, w, h);
+                      gradBorder.addColorStop(0, b1); gradBorder.addColorStop(0.5, document.getElementById('cfgBorderColor2').value); gradBorder.addColorStop(1, document.getElementById('cfgBorderColor3').value);
+                      ctx.strokeStyle = gradBorder;
+                  } else { ctx.strokeStyle = b1; }
+
+                  if (document.getElementById('cfgFluoBorder').checked) { ctx.shadowColor = b1; ctx.shadowBlur = 30; }
+                  ctx.lineWidth = 36; ctx.strokeRect(0, 0, w, h); ctx.shadowBlur = 0; 
+              }
+
+              const _0xkey = ['\x58\x37\x6a\x39\x50\x6d\x71\x34\x4c\x32\x7a\x43\x38\x6b\x35\x76\x54\x31\x63\x33'];
+              const userLicense = document.getElementById('inputLicense');
+              if (userLicense && userLicense.value !== _0xkey[0]) {
+                  ctx.save(); ctx.translate(w / 2, h / 2); ctx.rotate(-Math.PI / 4);
+                  ctx.font = `900 60px ${fFont}`; ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+                  ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 10;
+                  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                  ctx.fillText("PLACA GENERADA CON SOCIALGRAF", 0, 0);
+                  ctx.restore();
+              }
+          }
+
+          if (hasVideo) {
+              window.isRecording = true;
+              const btnD = document.getElementById('btnDownloadDesktop');
+              const btnM = document.getElementById('btnDownloadMobile');
+              const originalTextD = document.getElementById('txtDownloadDesktop').innerText;
+              
+              document.getElementById('txtDownloadDesktop').innerText = 'GRABANDO VIDEO (ESPERÁ)...';
+              if(btnM) btnM.querySelector('span').innerText = 'GRABANDO VIDEO...';
+              btnD.classList.add('animate-pulse', 'bg-red-600', 'pointer-events-none');
+              if(btnM) btnM.classList.add('animate-pulse', 'bg-red-600', 'pointer-events-none');
+
+              activeVideos.forEach(v => { v.currentTime = 0; v.play(); });
+
+              const stream = canvas.captureStream(30);
+              
+              try {
+                  const vidStream = activeVideos[0].captureStream ? activeVideos[0].captureStream() : activeVideos[0].mozCaptureStream();
+                  const audioTracks = vidStream.getAudioTracks();
+                  if(audioTracks.length > 0) stream.addTrack(audioTracks[0]);
+              } catch(e) { console.warn("No se pudo adjuntar audio"); }
+
+              const mimeType = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm;codecs=vp9';
+              const recorder = new MediaRecorder(stream, { mimeType: mimeType });
+              const chunks = [];
+
+              recorder.ondataavailable = e => { if(e.data.size > 0) chunks.push(e.data); };
+              recorder.onstop = () => {
+                  window.isRecording = false;
+                  document.getElementById('txtDownloadDesktop').innerText = originalTextD;
+                  if(btnM) btnM.querySelector('span').innerText = 'DESCARGAR PLACA HD';
+                  btnD.classList.remove('animate-pulse', 'bg-red-600', 'pointer-events-none');
+                  if(btnM) btnM.classList.remove('animate-pulse', 'bg-red-600', 'pointer-events-none');
+
+                  const blob = new Blob(chunks, { type: mimeType });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a'); a.href = url;
+                  a.download = `SocialGraf_Reel_${new Date().getTime()}.${mimeType.includes('mp4') ? 'mp4' : 'webm'}`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+              };
+
+              recorder.start();
+
+              function drawLoop() {
+                  if (!window.isRecording) return;
+                  renderSnapshot();
+                  requestAnimationFrame(drawLoop);
+              }
+              drawLoop();
+
+              activeVideos[0].onended = () => { if(recorder.state === 'recording') recorder.stop(); };
+              setTimeout(() => { if(recorder.state === 'recording') recorder.stop(); }, 15000);
+
+          } else {
+              renderSnapshot();
+              let platformName = isFeed ? 'Feed_Vertical_4x5' : (isSquare ? 'Feed_Cuadrado_1x1' : (isWhatsapp ? 'WhatsApp' : 'Story_9x16'));
+              const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+              const a = document.createElement('a'); a.href = dataUrl;
+              a.download = `SocialGraf_${platformName}_${new Date().getTime()}.jpg`;
+              document.body.appendChild(a); a.click(); document.body.removeChild(a); 
+          }
+
+      } catch (err) { 
+          alert("🛑 ERROR DE DESCARGA: " + err.message + "\n\nFalla de renderizado. Intentá recargar la página."); 
+          console.error(err);
+      }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      checkTC();
+
+      if(localStorage.getItem('mcs_theme') === 'light') {
+          document.getElementById('uiThemeToggle').checked = true;
+          document.body.classList.add('light-theme');
+          document.getElementById('mainAppLogo').src = 'Logo%20SocialGraf%20Web.jpeg';
+      }
+      
+      const savedAgent = localStorage.getItem('mcs_imgAgent'); 
+      const savedLogo = localStorage.getItem('mcs_imgLogo');
+      const savedWmk = localStorage.getItem('mcs_imgWatermarkMaster');
+      
+      if(savedAgent) { document.getElementById('imgAgent').src = savedAgent; imageDataMap.imgAgent = savedAgent; }
+      if(savedLogo) { document.getElementById('imgLogo').src = savedLogo; imageDataMap.imgLogo = savedLogo; }
+      if(savedWmk) { 
+          document.getElementById('imgWatermarkMaster').src = savedWmk; 
+          for(let i=1; i<=4; i++) { const w = document.getElementById('wmk_img'+i); if(w) w.src = savedWmk; }
+      }
+
+      buildControls(); 
+      toggleGradientUI(); 
+      toggleGapUI();
+      setTimeout(() => { for(let i=1; i<=currentLayout; i++) initFrame('img'+i); updateLivePreview(); }, 500);
+      window.addEventListener('resize', () => { clearTimeout(window.resizeTimer); window.resizeTimer = setTimeout(() => { for(let i=1; i<=currentLayout; i++) initFrame('img'+i); }, 250); });
+    });
+  </script>
+
+  <!-- SECURE: Integración Firebase Auth v9 (Modular) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { 
+      getAuth, 
+      createUserWithEmailAndPassword, 
+      signInWithEmailAndPassword, 
+      onAuthStateChanged, 
+      signOut 
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC33DsWm7kSIeDNhCSgUGoXQ_DgSdrfPBA",
+      authDomain: "socialgraf-737fa.firebaseapp.com",
+      projectId: "socialgraf-737fa",
+      storageBucket: "socialgraf-737fa.firebasestorage.app",
+      messagingSenderId: "228214440351",
+      appId: "1:228214440351:web:4ae7de4d92c9d449a23daa",
+      measurementId: "G-XC1L0HLQ68"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    let isLoginMode = true;
+    const authScreen = document.getElementById('auth-screen');
+    const authForm = document.getElementById('auth-form');
+    const authTitle = document.getElementById('auth-title');
+    const authBtn = document.getElementById('auth-btn');
+    const authSwitchText = document.getElementById('auth-switch-text');
+    const authSwitchBtn = document.getElementById('auth-switch-btn');
+    const authError = document.getElementById('auth-error');
+
+    window.toggleAuthMode = () => {
+      isLoginMode = !isLoginMode;
+      authError.classList.add('hidden');
+      if (isLoginMode) {
+        authTitle.innerText = 'Iniciar Sesión';
+        authBtn.innerText = 'ENTRAR';
+        authSwitchText.innerText = '¿No tenés cuenta?';
+        authSwitchBtn.innerText = 'Registrate';
+      } else {
+        authTitle.innerText = 'Crear Cuenta';
+        authBtn.innerText = 'REGISTRARME';
+        authSwitchText.innerText = '¿Ya tenés cuenta?';
+        authSwitchBtn.innerText = 'Iniciá Sesión';
+      }
+    };
+
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      authError.classList.add('hidden');
+      authBtn.disabled = true;
+      authBtn.innerText = 'PROCESANDO...';
+
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+
+      try {
+        if (isLoginMode) {
+          await signInWithEmailAndPassword(auth, email, password);
+        } else {
+          await createUserWithEmailAndPassword(auth, email, password);
+        }
+      } catch (error) {
+        let errorMsg = 'Ocurrió un error. Verificá tus datos.';
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') errorMsg = 'Credenciales incorrectas.';
+        if (error.code === 'auth/email-already-in-use') errorMsg = 'El correo ya está registrado.';
+        if (error.code === 'auth/weak-password') errorMsg = 'La contraseña debe tener al menos 6 caracteres.';
+        
+        authError.innerText = errorMsg;
+        authError.classList.remove('hidden');
+        authBtn.innerText = isLoginMode ? 'ENTRAR' : 'REGISTRARME';
+        authBtn.disabled = false;
+      }
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        authScreen.style.opacity = '0';
+        setTimeout(() => authScreen.classList.add('hidden'), 300);
+      } else {
+        authScreen.classList.remove('hidden');
+        setTimeout(() => authScreen.style.opacity = '1', 10);
+        authBtn.innerText = isLoginMode ? 'ENTRAR' : 'REGISTRARME';
+        authBtn.disabled = false;
+      }
+    });
+
+    window.logoutUser = () => {
+      signOut(auth).catch((error) => console.error("Error al cerrar sesión", error));
+    };
+  </script>
+</body>
+</html>
