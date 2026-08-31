@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- Desarrollador y Arquitecto de Software: Mauro César Scarfatti -->
+  <meta name="author" content="Mauro César Scarfatti">
+  <meta name="version" content="1.31.0-Auth">
+  <title>SocialGraf Pro</title>
+  
+  <link rel="icon" type="image/jpeg" href="Logo%20SocialGraf%20favicon.jpeg">
+  <link rel="apple-touch-icon" href="Logo%20SocialGraf%20favicon.jpeg">
+  <meta name="theme-color" content="#0f172a">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Roboto:wght@400;700;900&family=Poppins:wght@400;600;700;800&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+        --brand-primary: #2C3280;
+        --brand-secondary: #38bdf8;
+        --footer-bg: #ffffff;
+        --footer-text: #000000;
+        --main-font: 'Montserrat', sans-serif;
+        --price-bg: #2C3280;
+        --price-opacity: 1;
+        --price-border: #ffffff;
+        --overlay-bg: rgba(0,0,0,0.5);
+        --overlay-text: #ffffff;
+    }
+
+    body { font-family: var(--main-font); background-color: #0f172a; color: #f8fafc; -webkit-tap-highlight-color: transparent; transition: background-color 0.3s; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: #1e293b; }
+    ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 2px; }
+
+    #captureArea { container-type: inline-size; border-style: solid; }
+
+    .story-aspect-ratio { aspect-ratio: 9 / 16; height: 100%; width: auto; max-width: none; margin: 0 auto; }
+    .feed-aspect-ratio { aspect-ratio: 4 / 5; height: 100%; width: auto; max-width: none; margin: 0 auto; }
+    .square-aspect-ratio { aspect-ratio: 1 / 1; height: 100%; width: auto; max-width: none; margin: 0 auto; }
+    
+    .glass-panel { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+
+    .frame-viewport { position: relative; overflow: hidden; width: 100%; height: 100%; background-color: #1e293b; display: flex; align-items: center; justify-content: center; cursor: grab; touch-action: none; }
+    .frame-viewport:active { cursor: grabbing; }
+    .frame-image { position: absolute; transform-origin: center center; will-change: transform; pointer-events: none; }
+
+    input[type=range].frame-slider { -webkit-appearance: none; width: 100%; background: transparent; height: 12px; border-radius: 6px; }
+    input[type=range].frame-slider::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: #3b82f6; cursor: pointer; margin-top: -6px; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+    input[type=range].frame-slider::-webkit-slider-runnable-track { width: 100%; height: 8px; cursor: pointer; background: #475569; border-radius: 4px; }
+    
+    .grid-layout-1 { display: grid; grid-template-rows: 1fr; grid-template-columns: 1fr; height: 100%; }
+    .grid-layout-2 { display: grid; grid-template-rows: 1fr 1fr; grid-template-columns: 1fr; height: 100%; }
+    .grid-layout-3 { display: grid; grid-template-rows: 55% 45%; grid-template-columns: 1fr 1fr; height: 100%; }
+    .grid-layout-3 .hero-img { grid-column: 1 / -1; }
+    .grid-layout-4 { display: grid; grid-template-rows: 1fr 1fr; grid-template-columns: 1fr 1fr; height: 100%; }
+
+    input[type="color"] { -webkit-appearance: none; border: none; padding: 0; width: 100%; height: 28px; border-radius: 4px; cursor: pointer; }
+    input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    input[type="color"]::-webkit-color-swatch { border: none; border-radius: 4px; }
+
+    details > summary { list-style: none; outline: none; }
+    details > summary::-webkit-details-marker { display: none; }
+    details[open] > summary svg.chevron { transform: rotate(180deg); }
+
+    @media (max-width: 1023px) { .mobile-tab-active { background-color: #2563eb !important; color: #ffffff !important; font-weight: 700; border-bottom: 2px solid #60a5fa; } }
+
+    body.light-theme { background-color: #f8fafc !important; }
+    body.light-theme #panel-controls { background-color: #f1f5f9 !important; border-color: #e2e8f0 !important; }
+    body.light-theme #panel-preview { background-color: #e2e8f0 !important; }
+    body.light-theme .glass-panel { background: rgba(255, 255, 255, 0.9) !important; border-color: #cbd5e1 !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    body.light-theme #panel-controls .text-white, body.light-theme #panel-controls .text-slate-300, body.light-theme #panel-controls .text-slate-400 { color: #334155 !important; }
+    body.light-theme #panel-preview .adapt-text { color: #1e293b !important; }
+    
+    body.sidebar-closed #panel-controls, body.sidebar-closed #mobile-tabs { display: none !important; }
+    body.sidebar-closed #panel-preview { display: flex !important; width: 100% !important; }
+    
+    .interactive-element { cursor: pointer; transition: all 0.2s; }
+    .interactive-element:hover { outline: 2px dashed #3b82f6; outline-offset: 2px; }
+  </style>
+</head>
+<body class="h-screen w-screen overflow-hidden text-sm sm:text-base selection:bg-blue-500/30 flex flex-col relative pb-20 lg:pb-0">
+
+  <!-- PANTALLA DE AUTENTICACIÓN Y REGISTRO MEJORADA -->
+  <div id="auth-screen" class="fixed inset-0 z-[200] bg-slate-950 flex items-center justify-center p-4 transition-opacity duration-300">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl max-w-sm w-full p-8 flex flex-col items-center">
+      <img src="Logo%20SocialGraf%20Web.jpeg" alt="SocialGraf" class="h-12 mb-6 object-contain rounded-lg" onerror="this.style.display='none'">
+      
+      <h2 id="auth-title" class="text-xl font-black text-white uppercase tracking-wider mb-6">Iniciar Sesión</h2>
+      
+      <form id="auth-form" class="w-full space-y-4" novalidate>
+        <div>
+          <label class="block text-xs font-bold text-slate-400 mb-1">Correo Electrónico</label>
+          <input type="email" id="auth-email" required class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+          <p id="email-error" class="text-red-400 text-[10px] mt-1 hidden">Ingresá un mail válido.</p>
+        </div>
+
+        <div id="phone-group" class="hidden">
+          <label class="block text-xs font-bold text-slate-400 mb-1">Teléfono</label>
+          <input type="tel" id="auth-phone" placeholder="+5492267..." class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-400 mb-1">Contraseña</label>
+          <input type="password" id="auth-password" required minlength="8" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+          <p id="pass-error" class="text-red-400 text-[10px] mt-1 hidden">Mínimo 8 caracteres, una mayúscula, una minúscula y un número.</p>
+        </div>
+
+        <div id="confirm-group" class="hidden">
+          <label class="block text-xs font-bold text-slate-400 mb-1">Repetir Contraseña</label>
+          <input type="password" id="auth-confirm-password" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+          <p id="confirm-error" class="text-red-400 text-[10px] mt-1 hidden">Las contraseñas no coinciden.</p>
+        </div>
+        
+        <button type="submit" id="auth-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg shadow-blue-500/30 transition-all mt-4">
+          ENTRAR
+        </button>
+      </form>
+      
+      <div class="mt-6 text-xs text-slate-400 font-medium">
+        <span id="auth-switch-text">¿No tenés cuenta?</span> 
+        <button type="button" onclick="toggleAuthMode()" id="auth-switch-btn" class="text-blue-400 hover:text-blue-300 font-bold ml-1">
+          Registrate
+        </button>
+      </div>
+      
+      <p id="auth-error" class="mt-4 text-xs font-bold text-red-400 text-center hidden"></p>
+    </div>
+  </div>
+
+  <div id="tcModal" class="fixed inset-0 z-[100] bg-slate-900/95 backdrop-blur-md hidden flex-col items-center justify-center p-4 transition-opacity">
+    <div class="bg-slate-800 border border-slate-600 rounded-2xl shadow-2xl max-w-lg w-full flex flex-col max-h-[90vh]">
+      <div class="p-6 border-b border-slate-700">
+        <h2 class="text-xl font-black text-white uppercase tracking-wider">Términos y Condiciones</h2>
+      </div>
+      <div class="p-6 overflow-y-auto text-sm text-slate-300 space-y-4 font-medium">
+        <p>Al utilizar <strong>SocialGraf Pro</strong>, aceptás lo siguiente:</p>
+        <ul class="list-disc pl-5 space-y-2">
+          <li><strong class="text-white">Privacidad (Zero-Storage):</strong> Ninguna imagen o video ingresado se sube a nuestros servidores. El procesamiento es local.</li>
+        </ul>
+      </div>
+      <div class="p-6 border-t border-slate-700 flex justify-end">
+        <button onclick="acceptTC()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-blue-500/30 transition-all">Acepto y Entiendo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENEDOR PRINCIPAL DE LA APP -->
+  <div class="flex-1 flex flex-col lg:flex-row h-full overflow-hidden relative">
+    <div id="panel-controls" class="w-full lg:w-[450px] xl:w-[500px] h-full overflow-y-auto bg-slate-900/50 p-4 sm:p-6 pt-20 border-r border-slate-800 flex flex-col gap-4 pb-12">
+      <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Editor SocialGraf Pro</h2>
+      <button onclick="logoutUser()" class="w-full mt-4 bg-slate-800 hover:bg-red-900/50 border border-red-500/30 text-red-400 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+        Cerrar Sesión
+      </button>
+    </div>
+    <div id="panel-preview" class="flex flex-1 flex-col bg-slate-950 items-center justify-center p-2 sm:p-6 overflow-hidden relative h-full">
+      <h1 class="text-white font-bold text-lg">Panel de Vista Previa Activo</h1>
+    </div>
+  </div>
+
+  <!-- SCRIPT FIREBASE Y AUTENTICACIÓN -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { 
+      getAuth, 
+      createUserWithEmailAndPassword, 
+      signInWithEmailAndPassword, 
+      sendEmailVerification,
+      onAuthStateChanged, 
+      signOut 
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC33DsWm7kSIeDNhCSgUGoXQ_DgSdrfPBA",
+      authDomain: "socialgraf-737fa.firebaseapp.com",
+      projectId: "socialgraf-737fa",
+      storageBucket: "socialgraf-737fa.firebasestorage.app",
+      messagingSenderId: "228214440351",
+      appId: "1:228214440351:web:4ae7de4d92c9d449a23daa"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    let isLoginMode = true;
+    const authScreen = document.getElementById('auth-screen');
+    const authForm = document.getElementById('auth-form');
+    const authTitle = document.getElementById('auth-title');
+    const authBtn = document.getElementById('auth-btn');
+    const authSwitchText = document.getElementById('auth-switch-text');
+    const authSwitchBtn = document.getElementById('auth-switch-btn');
+    const authError = document.getElementById('auth-error');
+    const phoneGroup = document.getElementById('phone-group');
+    const confirmGroup = document.getElementById('confirm-group');
+
+    window.toggleAuthMode = () => {
+      isLoginMode = !isLoginMode;
+      authError.classList.add('hidden');
+      if (isLoginMode) {
+        authTitle.innerText = 'Iniciar Sesión';
+        authBtn.innerText = 'ENTRAR';
+        authSwitchText.innerText = '¿No tenés cuenta?';
+        authSwitchBtn.innerText = 'Registrate';
+        phoneGroup.classList.add('hidden');
+        confirmGroup.classList.add('hidden');
+      } else {
+        authTitle.innerText = 'Crear Cuenta';
+        authBtn.innerText = 'REGISTRARME';
+        authSwitchText.innerText = '¿Ya tenés cuenta?';
+        authSwitchBtn.innerText = 'Iniciá Sesión';
+        phoneGroup.classList.remove('hidden');
+        confirmGroup.classList.remove('hidden');
+      }
+    };
+
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      authError.classList.add('hidden');
+      
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+
+      if (!isLoginMode) {
+        const confirmPassword = document.getElementById('auth-confirm-password').value;
+        const phone = document.getElementById('auth-phone').value.trim();
+        
+        const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+        const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+        if (!emailRegex.test(email)) {
+          document.getElementById('email-error').classList.remove('hidden');
+          return;
+        } else {
+          document.getElementById('email-error').classList.add('hidden');
+        }
+
+        if (!passRegex.test(password)) {
+          document.getElementById('pass-error').classList.remove('hidden');
+          return;
+        } else {
+          document.getElementById('pass-error').classList.add('hidden');
+        }
+
+        if (password !== confirmPassword) {
+          document.getElementById('confirm-error').classList.remove('hidden');
+          return;
+        } else {
+          document.getElementById('confirm-error').classList.add('hidden');
+        }
+      }
+
+      authBtn.disabled = true;
+      authBtn.innerText = 'PROCESANDO...';
+
+      try {
+        if (isLoginMode) {
+          await signInWithEmailAndPassword(auth, email, password);
+        } else {
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          // Enviar link de validación al correo electrónico automáticamente
+          await sendEmailVerification(userCredential.user);
+          alert('¡Cuenta creada con éxito! Te enviamos un correo electrónico con un enlace para verificar tu cuenta.');
+        }
+      } catch (error) {
+        let errorMsg = 'Ocurrió un error. Verificá tus datos.';
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') errorMsg = 'Credenciales incorrectas.';
+        if (error.code === 'auth/email-already-in-use') errorMsg = 'El correo ya está registrado.';
+        if (error.code === 'auth/weak-password') errorMsg = 'La contraseña debe ser más segura.';
+        
+        authError.innerText = errorMsg;
+        authError.classList.remove('hidden');
+        authBtn.innerText = isLoginMode ? 'ENTRAR' : 'REGISTRARME';
+        authBtn.disabled = false;
+      }
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        authScreen.style.opacity = '0';
+        setTimeout(() => authScreen.classList.add('hidden'), 300);
+      } else {
+        authScreen.classList.remove('hidden');
+        setTimeout(() => authScreen.style.opacity = '1', 10);
+        authBtn.innerText = isLoginMode ? 'ENTRAR' : 'REGISTRARME';
+        authBtn.disabled = false;
+      }
+    });
+
+    window.logoutUser = () => {
+      signOut(auth).catch((error) => console.error("Error al cerrar sesión", error));
+    };
+
+    window.acceptTC = () => {
+      localStorage.setItem('mcs_tc_accepted', 'true');
+      document.getElementById('tcModal').classList.add('hidden');
+    };
+
+    if (localStorage.getItem('mcs_tc_accepted') !== 'true') {
+      document.getElementById('tcModal').classList.remove('hidden');
+      document.getElementById('tcModal').classList.add('flex');
+    }
+  </script>
+</body>
+</html>
