@@ -1,0 +1,164 @@
+<!-- auth.html (Autenticación y Registro Seguro) -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso - SocialGraf Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 flex items-center justify-center h-screen m-0 font-sans">
+    <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl max-w-sm w-full">
+        <h2 id="auth-title" class="text-xl font-black text-white uppercase tracking-wider mb-6 text-center">Iniciar Sesión</h2>
+        
+        <form id="auth-form" class="space-y-4" novalidate>
+            <div>
+                <label class="block text-xs font-bold text-slate-400 mb-1">Correo Electrónico</label>
+                <input type="email" id="auth-email" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                <p id="email-error" class="text-red-400 text-[10px] mt-1 hidden">Ingresá un mail válido.</p>
+            </div>
+
+            <div id="phone-group" class="hidden">
+                <label class="block text-xs font-bold text-slate-400 mb-1">Teléfono</label>
+                <input type="tel" id="auth-phone" placeholder="+5492267..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-400 mb-1">Contraseña</label>
+                <input type="password" id="auth-password" required minlength="8" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                <p id="pass-error" class="text-red-400 text-[10px] mt-1 hidden">Mínimo 8 caracteres, una mayúscula, minúscula y número.</p>
+            </div>
+
+            <div id="confirm-group" class="hidden">
+                <label class="block text-xs font-bold text-slate-400 mb-1">Repetir Contraseña</label>
+                <input type="password" id="auth-confirm-password" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                <p id="confirm-error" class="text-red-400 text-[10px] mt-1 hidden">Las contraseñas no coinciden.</p>
+            </div>
+            
+            <button type="submit" id="auth-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg shadow-blue-500/30 transition-all mt-4">
+                ENTRAR
+            </button>
+        </form>
+        
+        <div class="mt-6 text-xs text-slate-400 font-medium text-center">
+            <span id="auth-switch-text">¿No tenés cuenta?</span> 
+            <button type="button" onclick="toggleAuthMode()" id="auth-switch-btn" class="text-blue-400 hover:text-blue-300 font-bold ml-1">
+                Registrate
+            </button>
+        </div>
+        
+        <p id="auth-error" class="mt-4 text-xs font-bold text-red-400 text-center hidden"></p>
+        
+        <div class="mt-6 text-center text-xs">
+            <a href="index.html" class="text-slate-500 hover:text-slate-400 transition-colors">← Volver al inicio</a>
+        </div>
+    </div>
+
+    <!-- Script de Autenticación Firebase Modular -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC33DsWm7kSIeDNhCSgUGoXQ_DgSdrfPBA",
+            authDomain: "socialgraf-737fa.firebaseapp.com",
+            projectId: "socialgraf-737fa",
+            storageBucket: "socialgraf-737fa.firebasestorage.app",
+            messagingSenderId: "228214440351",
+            appId: "1:228214440351:web:4ae7de4d92c9d449a23daa"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        let isLoginMode = true;
+        const authForm = document.getElementById('auth-form');
+        const authTitle = document.getElementById('auth-title');
+        const authBtn = document.getElementById('auth-btn');
+        const authSwitchText = document.getElementById('auth-switch-text');
+        const authSwitchBtn = document.getElementById('auth-switch-btn');
+        const authError = document.getElementById('auth-error');
+        const phoneGroup = document.getElementById('phone-group');
+        const confirmGroup = document.getElementById('confirm-group');
+
+        window.toggleAuthMode = () => {
+            isLoginMode = !isLoginMode;
+            authError.classList.add('hidden');
+            if (isLoginMode) {
+                authTitle.innerText = 'Iniciar Sesión';
+                authBtn.innerText = 'ENTRAR';
+                authSwitchText.innerText = '¿No tenés cuenta?';
+                authSwitchBtn.innerText = 'Registrate';
+                phoneGroup.classList.add('hidden');
+                confirmGroup.classList.add('hidden');
+            } else {
+                authTitle.innerText = 'Crear Cuenta';
+                authBtn.innerText = 'REGISTRARME';
+                authSwitchText.innerText = '¿Ya tenés cuenta?';
+                authSwitchBtn.innerText = 'Iniciá Sesión';
+                phoneGroup.classList.remove('hidden');
+                confirmGroup.classList.remove('hidden');
+            }
+        };
+
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            authError.classList.add('hidden');
+            
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value;
+
+            if (!isLoginMode) {
+                const confirmPassword = document.getElementById('auth-confirm-password').value;
+                const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+                const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+                if (!emailRegex.test(email)) {
+                    document.getElementById('email-error').classList.remove('hidden');
+                    return;
+                } else {
+                    document.getElementById('email-error').classList.add('hidden');
+                }
+
+                if (!passRegex.test(password)) {
+                    document.getElementById('pass-error').classList.remove('hidden');
+                    return;
+                } else {
+                    document.getElementById('pass-error').classList.add('hidden');
+                }
+
+                if (password !== confirmPassword) {
+                    document.getElementById('confirm-error').classList.remove('hidden');
+                    return;
+                } else {
+                    document.getElementById('confirm-error').classList.add('hidden');
+                }
+            }
+
+            authBtn.disabled = true;
+            authBtn.innerText = 'PROCESANDO...';
+
+            try {
+                if (isLoginMode) {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    window.location.href = 'app.html'; // Redirigir al panel principal tras login exitoso
+                } else {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    await sendEmailVerification(userCredential.user);
+                    alert('¡Cuenta creada con éxito! Te enviamos un correo para verificar tu cuenta.');
+                    window.location.href = 'app.html';
+                }
+            } catch (error) {
+                let errorMsg = 'Ocurrió un error. Verificá tus datos.';
+                if (error.code === 'auth/invalid-credential') errorMsg = 'Credenciales incorrectas.';
+                if (error.code === 'auth/email-already-in-use') errorMsg = 'El correo ya está registrado.';
+                
+                authError.innerText = errorMsg;
+                authError.classList.remove('hidden');
+                authBtn.innerText = isLoginMode ? 'ENTRAR' : 'REGISTRARME';
+                authBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
